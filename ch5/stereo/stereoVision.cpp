@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     // 读取图像
     cv::Mat left = cv::imread(left_file, 0);
     cv::Mat right = cv::imread(right_file, 0);
-    cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(10, 96, 11);    // 参数为 最小视差，最大视差，窗口大小
+    cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(
+        0, 96, 9, 8 * 9 * 9, 32 * 9 * 9, 1, 63, 10, 100, 32);    // 神奇的参数
     cv::Mat disparity_sgbm, disparity;
     sgbm->compute(left, right, disparity_sgbm);
     disparity_sgbm.convertTo(disparity, CV_32F, 1.0 / 16.0f);
@@ -37,7 +38,7 @@ int main(int argc, char **argv) {
     // 如果你的机器慢，请把后面的v++和u++改成v+=2, u+=2
     for (int v = 0; v < left.rows; v++)
         for (int u = 0; u < left.cols; u++) {
-            if (disparity.at<float>(v, u) <= 10.0 || disparity.at<float>(v, u) >= 96.0) continue;
+            if (disparity.at<float>(v, u) <= 0.0 || disparity.at<float>(v, u) >= 96.0) continue;
 
             Vector4d point(0, 0, 0, left.at<uchar>(v, u) / 255.0); // 前三维为xyz,第四维为颜色
 
