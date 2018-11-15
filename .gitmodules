@@ -4,3 +4,6 @@
 [submodule "3rdparty/Sophus"]
 	path = 3rdparty/Sophus
 	url = https://github.com/strasdat/Sophus
+[submodule "3rdparty/ceres-solver"]
+	path = 3rdparty/ceres-solver
+	url = https://github.com/ceres-solver/ceres-solver
