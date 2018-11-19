@@ -7,3 +7,6 @@
 [submodule "3rdparty/ceres-solver"]
 	path = 3rdparty/ceres-solver
 	url = https://github.com/ceres-solver/ceres-solver
+[submodule "3rdparty/g2o"]
+	path = 3rdparty/g2o
+	url = https://github.com/RainerKuemmerle/g2o
