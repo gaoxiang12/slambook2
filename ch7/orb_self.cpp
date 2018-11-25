@@ -71,7 +71,6 @@ int main(int argc, char **argv) {
   cv::Mat image_show;
   cv::drawMatches(first_image, keypoints1, second_image, keypoints2, matches, image_show);
   cv::imshow("matches", image_show);
-  cv::imwrite("matches.png", image_show);
   cv::waitKey(0);
 
   cout << "done." << endl;
