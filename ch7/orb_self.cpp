@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
   cv::Mat image_show;
   cv::drawMatches(first_image, keypoints1, second_image, keypoints2, matches, image_show);
   cv::imshow("matches", image_show);
+  cv::imwrite("matches.png", image_show);
   cv::waitKey(0);
 
   cout << "done." << endl;
@@ -340,8 +341,8 @@ int ORB_pattern[256 * 4] = {
 
 // compute the descriptor
 void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints, vector<DescType> &descriptors) {
-  int half_patch_size = 8;
-  int half_boundary = 16;
+  const int half_patch_size = 8;
+  const int half_boundary = 16;
   int bad_points = 0;
   for (auto &kp: keypoints) {
     if (kp.pt.x < half_boundary || kp.pt.y < half_boundary ||
@@ -362,7 +363,7 @@ void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints, vector<Desc
     }
 
     // angle should be arc tan(m01/m10);
-    float m_sqrt = sqrt(m01 * m01 + m10 * m10);
+    float m_sqrt = sqrt(m01 * m01 + m10 * m10) + 1e-18; // avoid divide by zero
     float sin_theta = m01 / m_sqrt;
     float cos_theta = m10 / m_sqrt;
 
@@ -403,8 +404,7 @@ void BfMatch(const vector<DescType> &desc1, const vector<DescType> &desc2, vecto
       if (desc2[i2].empty()) continue;
       int distance = 0;
       for (int k = 0; k < 8; k++) {
-        unsigned int d = desc1[i1][k] ^desc2[i2][k];
-        distance += _mm_popcnt_u32(d);
+        distance += _mm_popcnt_u32(desc1[i1][k] ^ desc2[i2][k]);
       }
       if (distance < d_max && distance < m.distance) {
         m.distance = distance;
