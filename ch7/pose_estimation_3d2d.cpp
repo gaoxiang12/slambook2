@@ -18,19 +18,31 @@ using namespace std;
 using namespace cv;
 
 void find_feature_matches(
-  const Mat &img_1, const Mat &img_2,
-  std::vector<KeyPoint> &keypoints_1,
-  std::vector<KeyPoint> &keypoints_2,
-  std::vector<DMatch> &matches);
+    const Mat &img_1, const Mat &img_2,
+    std::vector<KeyPoint> &keypoints_1,
+    std::vector<KeyPoint> &keypoints_2,
+    std::vector<DMatch> &matches);
 
 // 像素坐标转相机归一化坐标
 Point2d pixel2cam(const Point2d &p, const Mat &K);
 
-void bundleAdjustment_g2o(
-  const vector<Point3f> points_3d,
-  const vector<Point2f> points_2d,
-  const Mat &K,
-  Sophus::SE3d &pose
+// BA by g2o
+typedef vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>> VecVector2d;
+typedef vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> VecVector3d;
+
+void bundleAdjustmentG2O(
+    const VecVector3d &points_3d,
+    const VecVector2d &points_2d,
+    const Mat &K,
+    Sophus::SE3d &pose
+);
+
+// BA by gauss-newton
+void bundleAdjustmentGaussNewton(
+    const VecVector3d &points_3d,
+    const VecVector2d &points_2d,
+    const Mat &K,
+    Sophus::SE3d &pose
 );
 
 int main(int argc, char **argv) {
@@ -73,9 +85,21 @@ int main(int argc, char **argv) {
   cout << "R=" << endl << R << endl;
   cout << "t=" << endl << t << endl;
 
-  cout << "calling bundle adjustment" << endl;
+  VecVector3d pts_3d_eigen;
+  VecVector2d pts_2d_eigen;
+  for (size_t i = 0; i < pts_3d.size(); ++i) {
+    pts_3d_eigen.push_back(Eigen::Vector3d(pts_3d[i].x, pts_3d[i].y, pts_3d[i].z));
+    pts_2d_eigen.push_back(Eigen::Vector3d(pts_2d[i].x, pts_2d[i].y));
+  }
+
+  cout << "calling bundle adjustment by gauss newton" << endl;
+  Sophus::SE3d pose_gn;
+  bundleAdjustmentGaussNewton(pts_3d_eigen, pts_2d_eigen, K, pose_gn);
+
+  cout << "calling bundle adjustment by g2o" << endl;
   Sophus::SE3d pose_g2o;
-  bundleAdjustment_g2o(pts_3d, pts_2d, K, pose_g2o);
+  bundleAdjustmentG2O(pts_3d_eigen, pts_2d_eigen, K, pose_g2o);
+  return 0;
 }
 
 void find_feature_matches(const Mat &img_1, const Mat &img_2,
@@ -85,12 +109,12 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
   //-- 初始化
   Mat descriptors_1, descriptors_2;
   // used in OpenCV3
-  Ptr<FeatureDetector> detector = ORB::create();
-  Ptr<DescriptorExtractor> descriptor = ORB::create();
+  Ptr <FeatureDetector> detector = ORB::create();
+  Ptr <DescriptorExtractor> descriptor = ORB::create();
   // use this if you are in OpenCV2
   // Ptr<FeatureDetector> detector = FeatureDetector::create ( "ORB" );
   // Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create ( "ORB" );
-  Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+  Ptr <DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
   //-- 第一步:检测 Oriented FAST 角点位置
   detector->detect(img_1, keypoints_1);
   detector->detect(img_2, keypoints_2);
@@ -127,10 +151,76 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
 
 Point2d pixel2cam(const Point2d &p, const Mat &K) {
   return Point2d
-    (
-      (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
-      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
-    );
+      (
+          (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
+          (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
+      );
+}
+
+void bundleAdjustmentGaussNewton(
+    const VecVector3d points_3d,
+    const VecVector2d points_2d,
+    const Mat &K,
+    Sophus::SE3d &pose
+) {
+  const int iterations = 10;
+  typedef Eigen::Matrix<double, 6, 1> Vector6d;
+  double cost = 0;
+
+  for (int iter = 0; iter < iterations; iter++) {
+    Eigen::Matrix<double, 6, 6> H = Eigen::Matrix<double, 6, 6>::Zero();
+    Vector6d b = Vector6d::Zero();
+
+    cost = 0;
+    // compute cost
+    for (int i = 0; i < points_3d.size(); i++) {
+      Eigen::Vector3d pc = pose * points_3d[i];
+      Eigen::Vector3d kpc = K * pc;
+      Eigen::Vector2d proj(kpc[0] / kpc[2], kpc[1] / kpc[2]);
+
+      Eigen::Vector2d e = points_2d[i] - proj;
+
+      cost += e.squaredNorm();
+      Matrix<double, 2, 6> J;
+      J << -fx / pc[2],
+          0,
+          fx * pc[0] / (pc[2] * pc[2]),
+          fx * pc[0] * pc[1] / (pc[2] * pc[2]),
+          -fx - fx * pc[0] * pc[0] / (pc[2] * pc[2]),
+          fx * pc[1] / pc[2],
+          0,
+          -fy / pc[2],
+          fy * pc[1] / pc[2],
+          fy + fy * pc[1] * pc[1] / (pc[2] * pc[2]),
+          -fy * pc[0] * pc[1] / (pc[2] * pc[2]),
+          -fy * pc[0] / pc[2];
+
+      H += J.transpose() * J;
+      b += -J.transpose() * e;
+    }
+
+    Vector6d
+        dx;
+    dx = H.ldlt().solve(b);
+
+    if (isnan(dx[0])) {
+      cout << "result is nan!" << endl;
+      break;
+    }
+
+    if (iter > 0 && cost >= lastCost) {
+      // cost increase, update is not good
+      cout << "cost: " << cost << ", last cost: " << lastCost << endl;
+      break;
+    }
+
+    // update your estimation
+    T_esti = SE3::exp(dx) * T_esti;
+    lastCost = cost;
+
+    cout << "iteration " << iter << " cost=" << cout.precision(12) << cost << endl;
+  }
+
 }
 
 /// vertex and edges used in g2o ba
@@ -181,8 +271,8 @@ public:
     double Z = pos_cam[2];
     double Z2 = Z * Z;
     _jacobianOplusXi
-      << -fx / Z, 0, fx * X / Z2, fx * X * Y / Z2, -fx - fx * X * X / Z2, fx * Y / Z,
-      0, -fy / Z, fy * Y / (Z * Z), fy + fy * Y * Y / Z2, -fy * X * Y / Z2, -fy * X / Z;
+        << -fx / Z, 0, fx * X / Z2, fx * X * Y / Z2, -fx - fx * X * X / Z2, fx * Y / Z,
+        0, -fy / Z, fy * Y / (Z * Z), fy + fy * Y * Y / Z2, -fy * X * Y / Z2, -fy * X / Z;
   }
 
   virtual bool read(istream &in) override {}
@@ -194,18 +284,18 @@ private:
   Eigen::Matrix3d _K;
 };
 
-void bundleAdjustment_g2o(
-  const vector<Point3f> points_3d,
-  const vector<Point2f> points_2d,
-  const Mat &K,
-  Sophus::SE3d &pose_g2o) {
+void bundleAdjustmentG2O(
+    const vector<Point3f> points_3d,
+    const vector<Point2f> points_2d,
+    const Mat &K,
+    Sophus::SE3d &pose_g2o) {
 
   // 构建图优化，先设定g2o
   typedef g2o::BlockSolver<g2o::BlockSolverTraits<6, 3>> BlockSolverType;  // 每个误差项优化变量维度为3，误差值维度为1
   typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType; // 线性求解器类型
   // 梯度下降方法，可以从GN, LM, DogLeg 中选
   auto solver = new g2o::OptimizationAlgorithmLevenberg(
-    g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
+      g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
   g2o::SparseOptimizer optimizer;     // 图模型
   optimizer.setAlgorithm(solver);   // 设置求解器
   optimizer.setVerbose(true);       // 打开调试输出
@@ -220,8 +310,8 @@ void bundleAdjustment_g2o(
   Eigen::Matrix3d K_eigen;
   K_eigen <<
           K.at<double>(0, 0), K.at<double>(0, 1), K.at<double>(0, 2),
-    K.at<double>(1, 0), K.at<double>(1, 1), K.at<double>(1, 2),
-    K.at<double>(2, 0), K.at<double>(2, 1), K.at<double>(2, 2);
+      K.at<double>(1, 0), K.at<double>(1, 1), K.at<double>(1, 2),
+      K.at<double>(2, 0), K.at<double>(2, 1), K.at<double>(2, 2);
 
   // edges
   int index = 1;
