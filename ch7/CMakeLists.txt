@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(vo1)
 
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 add_definitions("-DENABLE_SSE")
-set(CMAKE_CXX_FLAGS "-std=c++11 -O2 ${SSE_FLAGS} -g -march=native")
+set(CMAKE_CXX_FLAGS "-std=c++11 ${SSE_FLAGS} -g -march=native")
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(OpenCV 3 REQUIRED)
@@ -33,12 +33,10 @@ target_link_libraries(triangulation ${OpenCV_LIBS})
 
 add_executable(pose_estimation_3d2d pose_estimation_3d2d.cpp)
 target_link_libraries(pose_estimation_3d2d
-        g2o_core g2o_types_sba g2o_stuff
+        g2o_core g2o_stuff
         ${OpenCV_LIBS})
-#
-# add_executable( pose_estimation_3d3d pose_estimation_3d3d.cpp )
-# target_link_libraries( pose_estimation_3d3d
-#    ${OpenCV_LIBS}
-# g2o_core g2o_stuff g2o_types_sba g2o_csparse_extension
-# ${CSPARSE_LIBRARY}
-# )
+
+add_executable(pose_estimation_3d3d pose_estimation_3d3d.cpp)
+target_link_libraries(pose_estimation_3d3d
+        g2o_core g2o_stuff
+        ${OpenCV_LIBS})
