@@ -26,10 +26,10 @@ void triangulation(
 
 /// 作图用
 inline cv::Scalar get_color(float depth) {
-  float up_th = 50;
+  float up_th = 50, low_th = 10, th_range = up_th - low_th;
   if (depth > up_th) depth = up_th;
-  if (depth < 0) depth = 0;
-  return cv::Scalar(255 * (1 - depth / up_th), 0, 255 * depth / up_th);
+  if (depth < low_th) depth = low_th;
+  return cv::Scalar(255 * depth / th_range, 0, 255 * (1 - depth / th_range));
 }
 
 // 像素坐标转相机归一化坐标
@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < matches.size(); i++) {
     // 第一个图
     float depth1 = points[i].z;
+    cout << "depth: " << depth1 << endl;
     Point2d pt1_cam = pixel2cam(keypoints_1[matches[i].queryIdx].pt, K);
     cv::circle(img1_plot, keypoints_1[matches[i].queryIdx].pt, 2, get_color(depth1), 2);
 
@@ -143,27 +144,14 @@ void pose_estimation_2d2d(
     points2.push_back(keypoints_2[matches[i].trainIdx].pt);
   }
 
-  //-- 计算基础矩阵
-  Mat fundamental_matrix;
-  fundamental_matrix = findFundamentalMat(points1, points2, CV_FM_8POINT);
-  cout << "fundamental_matrix is " << endl << fundamental_matrix << endl;
-
   //-- 计算本质矩阵
   Point2d principal_point(325.1, 249.7);        //相机主点, TUM dataset标定值
   int focal_length = 521;            //相机焦距, TUM dataset标定值
   Mat essential_matrix;
   essential_matrix = findEssentialMat(points1, points2, focal_length, principal_point);
-  cout << "essential_matrix is " << endl << essential_matrix << endl;
-
-  //-- 计算单应矩阵
-  Mat homography_matrix;
-  homography_matrix = findHomography(points1, points2, RANSAC, 3);
-  cout << "homography_matrix is " << endl << homography_matrix << endl;
 
   //-- 从本质矩阵中恢复旋转和平移信息.
   recoverPose(essential_matrix, points1, points2, R, t, focal_length, principal_point);
-  cout << "R is " << endl << R << endl;
-  cout << "t is " << endl << t << endl;
 }
 
 void triangulation(
@@ -173,7 +161,7 @@ void triangulation(
   const Mat &R, const Mat &t,
   vector<Point3d> &points) {
   Mat T1 = (Mat_<float>(3, 4) <<
-                              1, 0, 0, 0,
+    1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0);
   Mat T2 = (Mat_<float>(3, 4) <<
