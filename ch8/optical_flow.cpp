@@ -53,7 +53,8 @@ void OpticalFlowSingleLevel(
     const vector<KeyPoint> &kp1,
     vector<KeyPoint> &kp2,
     vector<bool> &success,
-    bool inverse = false
+    bool inverse = false,
+    bool has_initial_guess = false
 );
 
 // TODO implement this funciton
@@ -179,10 +180,10 @@ void OpticalFlowSingleLevel(
     const vector<KeyPoint> &kp1,
     vector<KeyPoint> &kp2,
     vector<bool> &success,
-    bool inverse) {
+    bool inverse, bool has_initial) {
     kp2.resize(kp1.size());
     success.resize(kp1.size());
-    OpticalFlowTracker tracker(img1, img2, kp1, kp2, success, inverse);
+    OpticalFlowTracker tracker(img1, img2, kp1, kp2, success, inverse, has_initial);
     parallel_for_(Range(0, kp1.size()),
                   std::bind(&OpticalFlowTracker::calculateOpticalFlow, &tracker, placeholders::_1));
 }
@@ -321,13 +322,14 @@ void OpticalFlowMultiLevel(
         auto kp_top = kp;
         kp_top.pt *= scales[pyramids - 1];
         kp1_pyr.push_back(kp_top);
+        kp2_pyr.push_back(kp_top);
     }
 
     for (int level = pyramids - 1; level >= 0; level--) {
         // from coarse to fine
         success.clear();
         t1 = chrono::steady_clock::now();
-        OpticalFlowSingleLevel(pyr1[level], pyr2[level], kp1_pyr, kp2_pyr, success, inverse);
+        OpticalFlowSingleLevel(pyr1[level], pyr2[level], kp1_pyr, kp2_pyr, success, inverse, true);
         t2 = chrono::steady_clock::now();
         auto time_used = chrono::duration_cast<chrono::duration<double>>(t2 - t1);
         cout << "track pyr " << level << " cost time: " << time_used.count() << endl;
