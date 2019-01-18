@@ -80,8 +80,8 @@ public:
     double y = xyz_trans[1];
     double z = xyz_trans[2];
 
-    _jacobianOplusXi.block<3,3>(0,0) = -Eigen::Matrix3d::Identity();
-    _jacobianOplusXi.block<3,3>(0,3) = Sophus::SO3d::hat(xyz_trans);
+    _jacobianOplusXi.block<3, 3>(0, 0) = -Eigen::Matrix3d::Identity();
+    _jacobianOplusXi.block<3, 3>(0, 3) = Sophus::SO3d::hat(xyz_trans);
 
     // _jacobianOplusXi(0, 0) = 0;
     // _jacobianOplusXi(0, 1) = -z;
@@ -148,26 +148,26 @@ int main(int argc, char **argv) {
 
   cout << "3d-3d pairs: " << pts1.size() << endl;
   Mat R, t;
-  // pose_estimation_3d3d(pts1, pts2, R, t);
-  // cout << "ICP via SVD results: " << endl;
-  // cout << "R = " << R << endl;
-  // cout << "t = " << t << endl;
-  // cout << "R_inv = " << R.t() << endl;
-  // cout << "t_inv = " << -R.t() * t << endl;
+  pose_estimation_3d3d(pts1, pts2, R, t);
+  cout << "ICP via SVD results: " << endl;
+  cout << "R = " << R << endl;
+  cout << "t = " << t << endl;
+  cout << "R_inv = " << R.t() << endl;
+  cout << "t_inv = " << -R.t() * t << endl;
 
   cout << "calling bundle adjustment" << endl;
 
   bundleAdjustment(pts1, pts2, R, t);
 
-  // verify p1 = R*p2 + t
-  // for (int i = 0; i < 5; i++) {
-  //   cout << "p1 = " << pts1[i] << endl;
-  //   cout << "p2 = " << pts2[i] << endl;
-  //   cout << "(R*p2+t) = " <<
-  //        R * (Mat_<double>(3, 1) << pts2[i].x, pts2[i].y, pts2[i].z) + t
-  //        << endl;
-  //   cout << endl;
-  // }
+  // verify p1 = R * p2 + t
+  for (int i = 0; i < 5; i++) {
+    cout << "p1 = " << pts1[i] << endl;
+    cout << "p2 = " << pts2[i] << endl;
+    cout << "(R*p2+t) = " <<
+         R * (Mat_<double>(3, 1) << pts2[i].x, pts2[i].y, pts2[i].z) + t
+         << endl;
+    cout << endl;
+  }
 }
 
 void find_feature_matches(const Mat &img_1, const Mat &img_2,
@@ -265,7 +265,9 @@ void pose_estimation_3d3d(
   cout << "V=" << V << endl;
 
   Eigen::Matrix3d R_ = U * (V.transpose());
-  R_ = R_.determinant() > 1 ? R_ : -R_;
+  if (R_.determinant() < 1) {
+    R_ = -R_;
+  }
   Eigen::Vector3d t_ = Eigen::Vector3d(p1.x, p1.y, p1.z) - R_ * Eigen::Vector3d(p2.x, p2.y, p2.z);
 
   // convert to cv::Mat
