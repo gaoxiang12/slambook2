@@ -11,6 +11,7 @@
 #include <g2o/core/base_unary_edge.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/solvers/dense/linear_solver_dense.h>
 #include <chrono>
 #include <sophus/se3.hpp>
@@ -254,7 +255,7 @@ void bundleAdjustment(
   typedef g2o::BlockSolverX BlockSolverType;
   typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType; // 线性求解器类型
   // 梯度下降方法，可以从GN, LM, DogLeg 中选
-  auto solver = new g2o::OptimizationAlgorithmGaussNewton(
+  auto solver = new g2o::OptimizationAlgorithmLevenberg(
     g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
   g2o::SparseOptimizer optimizer;     // 图模型
   optimizer.setAlgorithm(solver);   // 设置求解器
