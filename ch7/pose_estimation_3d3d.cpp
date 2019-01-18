@@ -11,6 +11,7 @@
 #include <g2o/core/base_unary_edge.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/solvers/dense/linear_solver_dense.h>
 #include <chrono>
 #include <sophus/se3.hpp>
@@ -218,17 +219,15 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
 }
 
 Point2d pixel2cam(const Point2d &p, const Mat &K) {
-  return Point2d
-    (
-      (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
-      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
-    );
+  return Point2d(
+    (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
+    (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
+  );
 }
 
-void pose_estimation_3d3d(
-  const vector<Point3f> &pts1,
-  const vector<Point3f> &pts2,
-  Mat &R, Mat &t) {
+void pose_estimation_3d3d(const vector<Point3f> &pts1,
+                          const vector<Point3f> &pts2,
+                          Mat &R, Mat &t) {
   Point3f p1, p2;     // center of mass
   int N = pts1.size();
   for (int i = 0; i < N; i++) {
@@ -255,17 +254,11 @@ void pose_estimation_3d3d(
   Eigen::Matrix3d U = svd.matrixU();
   Eigen::Matrix3d V = svd.matrixV();
 
-  if (U.determinant() * V.determinant() < 0) {
-    for (int x = 0; x < 3; ++x) {
-      U(x, 2) *= -1;
-    }
-  }
-
   cout << "U=" << U << endl;
   cout << "V=" << V << endl;
 
   Eigen::Matrix3d R_ = U * (V.transpose());
-  if (R_.determinant() < 1) {
+  if (R_.determinant() < 0) {
     R_ = -R_;
   }
   Eigen::Vector3d t_ = Eigen::Vector3d(p1.x, p1.y, p1.z) - R_ * Eigen::Vector3d(p2.x, p2.y, p2.z);
@@ -287,7 +280,7 @@ void bundleAdjustment(
   typedef g2o::BlockSolverX BlockSolverType;
   typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType; // 线性求解器类型
   // 梯度下降方法，可以从GN, LM, DogLeg 中选
-  auto solver = new g2o::OptimizationAlgorithmGaussNewton(
+  auto solver = new g2o::OptimizationAlgorithmLevenberg(
     g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
   g2o::SparseOptimizer optimizer;     // 图模型
   optimizer.setAlgorithm(solver);   // 设置求解器
@@ -319,4 +312,14 @@ void bundleAdjustment(
 
   cout << endl << "after optimization:" << endl;
   cout << "T=\n" << pose->estimate().matrix() << endl;
+
+  // convert to cv::Mat
+  Eigen::Matrix3d R_ = pose->estimate().rotationMatrix();
+  Eigen::Vector3d t_ = pose->estimate().translation();
+  R = (Mat_<double>(3, 3) <<
+    R_(0, 0), R_(0, 1), R_(0, 2),
+    R_(1, 0), R_(1, 1), R_(1, 2),
+    R_(2, 0), R_(2, 1), R_(2, 2)
+  );
+  t = (Mat_<double>(3, 1) << t_(0, 0), t_(1, 0), t_(2, 0));
 }
