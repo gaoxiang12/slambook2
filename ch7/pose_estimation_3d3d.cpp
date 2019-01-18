@@ -76,33 +76,8 @@ public:
     VertexPose *pose = static_cast<VertexPose *>(_vertices[0]);
     Sophus::SE3d T = pose->estimate();
     Eigen::Vector3d xyz_trans = T * _point;
-    double x = xyz_trans[0];
-    double y = xyz_trans[1];
-    double z = xyz_trans[2];
-
     _jacobianOplusXi.block<3, 3>(0, 0) = -Eigen::Matrix3d::Identity();
     _jacobianOplusXi.block<3, 3>(0, 3) = Sophus::SO3d::hat(xyz_trans);
-
-    // _jacobianOplusXi(0, 0) = 0;
-    // _jacobianOplusXi(0, 1) = -z;
-    // _jacobianOplusXi(0, 2) = y;
-    // _jacobianOplusXi(0, 3) = -1;
-    // _jacobianOplusXi(0, 4) = 0;
-    // _jacobianOplusXi(0, 5) = 0;
-
-    // _jacobianOplusXi(1, 0) = z;
-    // _jacobianOplusXi(1, 1) = 0;
-    // _jacobianOplusXi(1, 2) = -x;
-    // _jacobianOplusXi(1, 3) = 0;
-    // _jacobianOplusXi(1, 4) = -1;
-    // _jacobianOplusXi(1, 5) = 0;
-
-    // _jacobianOplusXi(2, 0) = -y;
-    // _jacobianOplusXi(2, 1) = x;
-    // _jacobianOplusXi(2, 2) = 0;
-    // _jacobianOplusXi(2, 3) = 0;
-    // _jacobianOplusXi(2, 4) = 0;
-    // _jacobianOplusXi(2, 5) = -1;
   }
 
   bool read(istream &in) {}
@@ -218,17 +193,15 @@ void find_feature_matches(const Mat &img_1, const Mat &img_2,
 }
 
 Point2d pixel2cam(const Point2d &p, const Mat &K) {
-  return Point2d
-    (
-      (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
-      (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
-    );
+  return Point2d(
+    (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
+    (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1)
+  );
 }
 
-void pose_estimation_3d3d(
-  const vector<Point3f> &pts1,
-  const vector<Point3f> &pts2,
-  Mat &R, Mat &t) {
+void pose_estimation_3d3d(const vector<Point3f> &pts1,
+                          const vector<Point3f> &pts2,
+                          Mat &R, Mat &t) {
   Point3f p1, p2;     // center of mass
   int N = pts1.size();
   for (int i = 0; i < N; i++) {
@@ -255,24 +228,18 @@ void pose_estimation_3d3d(
   Eigen::Matrix3d U = svd.matrixU();
   Eigen::Matrix3d V = svd.matrixV();
 
-  if (U.determinant() * V.determinant() < 0) {
-    for (int x = 0; x < 3; ++x) {
-      U(x, 2) *= -1;
-    }
-  }
-
   cout << "U=" << U << endl;
   cout << "V=" << V << endl;
 
   Eigen::Matrix3d R_ = U * (V.transpose());
-  if (R_.determinant() < 1) {
+  if (R_.determinant() < 0) {
     R_ = -R_;
   }
   Eigen::Vector3d t_ = Eigen::Vector3d(p1.x, p1.y, p1.z) - R_ * Eigen::Vector3d(p2.x, p2.y, p2.z);
 
   // convert to cv::Mat
   R = (Mat_<double>(3, 3) <<
-                          R_(0, 0), R_(0, 1), R_(0, 2),
+    R_(0, 0), R_(0, 1), R_(0, 2),
     R_(1, 0), R_(1, 1), R_(1, 2),
     R_(2, 0), R_(2, 1), R_(2, 2)
   );
@@ -319,4 +286,14 @@ void bundleAdjustment(
 
   cout << endl << "after optimization:" << endl;
   cout << "T=\n" << pose->estimate().matrix() << endl;
+
+  // convert to cv::Mat
+  Eigen::Matrix3d R_ = pose->estimate().rotationMatrix();
+  Eigen::Vector3d t_ = pose->estimate().translation();
+  R = (Mat_<double>(3, 3) <<
+    R_(0, 0), R_(0, 1), R_(0, 2),
+    R_(1, 0), R_(1, 1), R_(1, 2),
+    R_(2, 0), R_(2, 1), R_(2, 2)
+  );
+  t = (Mat_<double>(3, 1) << t_(0, 0), t_(1, 0), t_(2, 0));
 }
