@@ -14,6 +14,7 @@ using namespace cv;
 string file_1 = "./LK1.png";  // first image
 string file_2 = "./LK2.png";  // second image
 
+/// Optical flow tracker and interface
 class OpticalFlowTracker {
 public:
     OpticalFlowTracker(
@@ -57,7 +58,6 @@ void OpticalFlowSingleLevel(
     bool has_initial_guess = false
 );
 
-// TODO implement this funciton
 /**
  * multi level optical flow, scale of pyramid is set to 2 by default
  * the image pyramid will be create inside the function
