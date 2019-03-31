@@ -10,3 +10,6 @@
 [submodule "3rdparty/g2o"]
 	path = 3rdparty/g2o
 	url = https://github.com/RainerKuemmerle/g2o
+[submodule "3rdparty/DBoW3"]
+	path = 3rdparty/DBoW3
+	url = https://github.com/rmsalinas/DBow3
