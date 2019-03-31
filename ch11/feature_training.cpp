@@ -13,8 +13,7 @@ using namespace std;
  * 本节演示了如何根据data/目录下的十张图训练字典
  * ************************************************/
 
-int main( int argc, char** argv )
-{
+int main( int argc, char** argv ) {
     // read the image 
     cout<<"reading images... "<<endl;
     vector<Mat> images; 
