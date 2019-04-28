@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
     // voxel filter 
     pcl::VoxelGrid<PointT> voxel_filter;
-    double resolution = 0.01;
+    double resolution = 0.03;
     voxel_filter.setLeafSize(resolution, resolution, resolution);       // resolution
     PointCloud::Ptr tmp(new PointCloud);
     voxel_filter.setInputCloud(pointCloud);

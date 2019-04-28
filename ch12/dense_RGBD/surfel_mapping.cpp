@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
 
     cout << "display mesh ... " << endl;
     pcl::visualization::PCLVisualizer vis;
+    vis.addPolylineFromPolygonMesh(*mesh, "mesh frame");
     vis.addPolygonMesh(*mesh, "mesh");
     vis.resetCamera();
     vis.spin();
