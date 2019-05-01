@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
             for (int u = 0; u < color.cols; u++) {
                 unsigned int d = depth.ptr<unsigned short>(v)[u]; // 深度值
                 if (d == 0) continue; // 为0表示没有测量到
-                // if (d >= 7000) continue; // 深度太大时不稳定，去掉
                 Eigen::Vector3d point;
                 point[2] = double(d) / depthScale;
                 point[0] = (u - cx) * point[2] / fx;
