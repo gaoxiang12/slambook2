@@ -1,24 +1,7 @@
-/*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2016  <copyright holder> <email>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
+#pragma once
 
-#ifndef FRAME_H
-#define FRAME_H
+#ifndef MYSLAM_FRAME_H
+#define MYSLAM_FRAME_H
 
 #include "myslam/common_include.h"
 #include "myslam/camera.h"
@@ -26,7 +9,8 @@
 namespace myslam {
 
 // forward declare 
-class MapPoint;
+struct MapPoint;
+struct Feature;
 
 struct Frame {
 public:
@@ -39,10 +23,16 @@ public:
     SE3 pose_;                  // Tcw, transform from world to camera
     Mat left_img_, right_img_; // stereo images
 
+    // extracted features in left image
+    std::vector<std::shared_ptr<Feature>> features_left_;
+
+    // corresponding features in right image, set to nullptr if no corresponding feature is found
+    std::vector<std::shared_ptr<Feature>> features_right_;
+
 public: // data members 
     Frame() {}
 
-    Frame(long id, double time_stamp, const SE3& pose, const Mat& left, const Mat& right);
+    Frame(long id, double time_stamp, const SE3 &pose, const Mat &left, const Mat &right);
 
     ~Frame();
 
@@ -52,4 +42,4 @@ public: // data members
 
 }
 
-#endif // FRAME_H
+#endif // MYSLAM_FRAME_H

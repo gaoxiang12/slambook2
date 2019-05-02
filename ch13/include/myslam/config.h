@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MYSLAM_CONFIG_H
 #define MYSLAM_CONFIG_H
 

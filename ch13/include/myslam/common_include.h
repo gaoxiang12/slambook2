@@ -1,8 +1,20 @@
+#pragma once
 #ifndef MYSLAM_COMMON_INCLUDE_H
 #define MYSLAM_COMMON_INCLUDE_H
 
+// std
+#include <vector>
+#include <typeinfo>
+#include <list>
+#include <memory>
+#include <string>
+#include <iostream>
+#include <set>
+#include <unordered_map>
+#include <map>
+
+
 // define the commonly included file to avoid a long include list
-// for Eigen
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -93,16 +105,6 @@ typedef Sophus::SO3d SO3;
 #include <opencv2/core/core.hpp>
 
 using cv::Mat;
-
-// std 
-#include <vector>
-#include <list>
-#include <memory>
-#include <string>
-#include <iostream>
-#include <set>
-#include <unordered_map>
-#include <map>
 
 // glog
 #include <glog/logging.h>
