@@ -11,6 +11,7 @@ namespace myslam {
 class Backend {
 public:
     typedef std::shared_ptr<Backend> Ptr;
+    Backend() {}
 
 private:
 

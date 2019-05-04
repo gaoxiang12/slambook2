@@ -38,12 +38,12 @@ public: // data members
     ~Frame();
 
     // set and get pose, thread safe
-    SE3 pose() {
+    SE3 Pose() {
         std::unique_lock<std::mutex> lck(pose_mutex_);
         return pose_;
     }
 
-    void set_pose(const SE3 &pose) {
+    void SetPose(const SE3 &pose) {
         std::unique_lock<std::mutex> lck(pose_mutex_);
         pose_ = pose;
     }

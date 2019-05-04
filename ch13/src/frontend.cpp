@@ -16,9 +16,8 @@
 namespace myslam {
 
 Frontend::Frontend() {
-    gftt_ =
-            cv::GFTTDetector::create(Config::get<int>("num_features"), 0.01, 20);
-    num_features_init_ = Config::get<int>("num_features_init");
+    gftt_ = cv::GFTTDetector::create(Config::Get<int>("num_features"), 0.01, 20);
+    num_features_init_ = Config::Get<int>("num_features_init");
 }
 
 bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
@@ -60,8 +59,86 @@ bool Frontend::Track() {
     return true;
 }
 
-int Frontend::EstimateCurrentPose() {
+bool Frontend::InsertKeyframe() {
+    if (current_frame_->features_left_.size() >= num_features_needed_for_keyframe_) {
+        // still have enough features, don't insert keyframe
+        return false;
+    }
 
+
+
+}
+
+int Frontend::EstimateCurrentPose() {
+    // setup g2o
+    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6, 3>> BlockSolverType;
+    typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
+    auto solver = new g2o::OptimizationAlgorithmLevenberg(
+            g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
+    g2o::SparseOptimizer optimizer;
+    optimizer.setAlgorithm(solver);
+
+    // vertex
+    VertexPose *vertex_pose = new VertexPose(); // camera vertex_pose
+    vertex_pose->setId(0);
+    vertex_pose->setEstimate(current_frame_->Pose());
+    optimizer.addVertex(vertex_pose);
+
+    // K
+    Mat33 K = camera_left_->K();
+
+    // edges
+    int index = 1;
+    std::vector<EdgeProjectionPoseOnly *> edges;
+    std::vector<Feature::Ptr> features;
+    for (size_t i = 0; i < current_frame_->features_left_.size(); ++i) {
+        auto mp = current_frame_->features_left_[i]->map_point_.lock();
+        if (mp) {
+            features.push_back(current_frame_->features_left_[i]);
+            EdgeProjectionPoseOnly *edge = new EdgeProjectionPoseOnly(mp->pos_, K);
+            edge->setId(index);
+            edge->setVertex(0, vertex_pose);
+            edge->setMeasurement(toVec2(current_frame_->features_left_[i]->position_.pt));
+            edge->setInformation(Eigen::Matrix2d::Identity());
+            edge->setRobustKernel(new g2o::RobustKernelHuber);
+            edges.push_back(edge);
+            optimizer.addEdge(edge);
+            index++;
+        }
+    }
+
+    // estimate the Pose the determine the outliers
+    const double chi2_th = 5.991;
+    int cnt_outlier = 0;
+    for (int iteration = 0; iteration < 4; ++iteration) {
+        vertex_pose->setEstimate(current_frame_->Pose());
+        optimizer.initializeOptimization();
+        optimizer.optimize(10);
+        cnt_outlier = 0;
+
+        // count the outliers
+        for (size_t i = 0; i < edges.size(); ++i) {
+            auto e = edges[i];
+            if (features[i]->is_outlier_) {
+                e->computeError();
+            }
+            if (e->chi2() > chi2_th) {
+                features[i]->is_outlier_ = true;
+                e->setLevel(1);
+                cnt_outlier++;
+            } else {
+                features[i]->is_outlier_ = false;
+                e->setLevel(0);
+            };
+
+            if (iteration == 2) {
+                e->setRobustKernel(nullptr);
+            }
+        }
+    }
+
+    current_frame_->SetPose(vertex_pose->estimate());
+    return features.size() - cnt_outlier;
 }
 
 int Frontend::TrackLastFrame() {
@@ -80,8 +157,9 @@ int Frontend::TrackLastFrame() {
     for (size_t i = 0; i < status.size(); ++i) {
         if (status[i]) {
             cv::KeyPoint kp(kps_current[i], 7);
-            current_frame_->features_left_.push_back(
-                    std::make_shared<Feature>(current_frame_, kp));
+            auto feature = std::make_shared<Feature>(current_frame_, kp);
+            feature->map_point_ = last_frame_->features_left_[i]->map_point_;
+            current_frame_->features_left_.push_back(feature);
             num_good_pts++;
         }
     }
@@ -120,7 +198,7 @@ int Frontend::FindFeaturesInRight() {
         if (mp) {
             // use projected points as initial guess
             auto px =
-                    camera_right_->world2pixel(mp->pos_, current_frame_->pose());
+                    camera_right_->world2pixel(mp->pos_, current_frame_->Pose());
             kps_right.push_back(cv::Point2f(px[0], px[1]));
         } else {
             // use same pixel in left iamge
@@ -175,6 +253,10 @@ bool Frontend::BuildInitMap() {
     }
     map_->InsertKeyFrame(current_frame_);
 
+    return true;
+}
+
+bool Frontend::Reset() {
     return true;
 }
 

@@ -15,8 +15,9 @@ namespace myslam {
  * @param poses     poses,
  * @param points    points in normalized plane
  * @param pt_world  triangulated point in the world
+ * @return true if success
  */
-void triangulation(const std::vector<SE3> &poses, const std::vector<Vec3> points, Vec3 &pt_world) {
+bool triangulation(const std::vector<SE3> &poses, const std::vector<Vec3> points, Vec3 &pt_world) {
     MatXX A(2 * poses.size(), 4);
     VecX b(2 * poses.size());
     b.setZero();
@@ -25,9 +26,16 @@ void triangulation(const std::vector<SE3> &poses, const std::vector<Vec3> points
         A.block<1, 4>(2 * i, 0) = points[i][0] * m.row(2) - m.row(0);
         A.block<1, 4>(2 * i + 1, 0) = points[i][1] * m.row(2) - m.row(1);
     }
-    Vec4 x = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-    pt_world = x.head<3>() / x[3];
+    auto svd = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+    if (svd.singularValues()[3] / svd.singularValues()[2] < 1e-4) {
+        pt_world = (svd.matrixV().col(3) / svd.matrixV()(3, 3)).head<3>();
+        return true;
+    }
+    return false;
 }
+
+// converters
+inline Vec2 toVec2(const cv::Point2f p) { return Vec2(p.x, p.y); }
 
 }
 

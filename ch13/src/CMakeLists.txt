@@ -6,8 +6,9 @@ add_library(myslam SHARED
         config.cpp
         feature.cpp
         frontend.cpp
-       # backend.cpp
-        ../include/myslam/algorithm.h ../include/myslam/g2o_types.h)
+        backend.cpp
+        viewer.cpp
+        visual_odometry.cpp)
 
 target_link_libraries(myslam
         ${THIRD_PARTY_LIBS})

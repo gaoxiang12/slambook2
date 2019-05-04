@@ -16,6 +16,7 @@ struct MapPoint;
 
 struct Feature {
 public:
+    typedef std::shared_ptr<Feature> Ptr;
     std::weak_ptr<Frame> frame_;
     cv::KeyPoint position_;
     std::weak_ptr<MapPoint> map_point_;
