@@ -14,3 +14,4 @@ camera.depth_scale: 5000
 
 num_features: 200
 num_features_init: 100
+num_features_tracking: 50

@@ -24,7 +24,7 @@ public:
 public:
     Feature() {}
 
-    Feature(const cv::KeyPoint &kp) : position_(kp) {}
+    Feature(std::shared_ptr<Frame> frame, const cv::KeyPoint &kp) : frame_(frame), position_(kp) {}
 };
 }
 

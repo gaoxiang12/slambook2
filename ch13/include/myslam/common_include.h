@@ -7,12 +7,12 @@
 #include <typeinfo>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <iostream>
 #include <set>
 #include <unordered_map>
 #include <map>
-
 
 // define the commonly included file to avoid a long include list
 #include <Eigen/Core>
@@ -44,6 +44,7 @@ typedef Eigen::Matrix<double, 1, 9> Mat19;
 typedef Eigen::Matrix<double, 8, 4> Mat84;
 typedef Eigen::Matrix<double, 4, 8> Mat48;
 typedef Eigen::Matrix<double, 4, 4> Mat44;
+typedef Eigen::Matrix<double, 3, 4> Mat34;
 typedef Eigen::Matrix<double, 14, 14> Mat1414;
 
 // float matricies

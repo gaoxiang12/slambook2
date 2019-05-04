@@ -21,6 +21,7 @@ public:
     bool is_keyframe_ = false;
     double time_stamp_;        // when it is recorded
     SE3 pose_;                  // Tcw, transform from world to camera
+    std::mutex pose_mutex_;
     Mat left_img_, right_img_; // stereo images
 
     // extracted features in left image
@@ -35,6 +36,17 @@ public: // data members
     Frame(long id, double time_stamp, const SE3 &pose, const Mat &left, const Mat &right);
 
     ~Frame();
+
+    // set and get pose, thread safe
+    SE3 pose() {
+        std::unique_lock<std::mutex> lck(pose_mutex_);
+        return pose_;
+    }
+
+    void set_pose(const SE3 &pose) {
+        std::unique_lock<std::mutex> lck(pose_mutex_);
+        pose_ = pose;
+    }
 
     // factory function
     static std::shared_ptr<Frame> CreateFrame();
