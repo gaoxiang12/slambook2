@@ -8,15 +8,19 @@
 #include "myslam/common_include.h"
 
 namespace myslam {
+class Map;
+
 class Backend {
-public:
+   public:
     typedef std::shared_ptr<Backend> Ptr;
     Backend() {}
 
-private:
+    void SetMap(std::shared_ptr<Map> map) { map_ = map; }
 
+   private:
+    std::shared_ptr<Map> map_;
 };
 
-}
+}  // namespace myslam
 
-#endif //MYSLAM_BACKEND_H
+#endif  // MYSLAM_BACKEND_H

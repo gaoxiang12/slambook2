@@ -22,7 +22,7 @@ public:
     double time_stamp_;        // when it is recorded
     SE3 pose_;                  // Tcw, transform from world to camera
     std::mutex pose_mutex_;
-    Mat left_img_, right_img_; // stereo images
+    cv::Mat left_img_, right_img_; // stereo images
 
     // extracted features in left image
     std::vector<std::shared_ptr<Feature>> features_left_;

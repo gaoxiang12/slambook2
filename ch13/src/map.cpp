@@ -24,16 +24,20 @@ namespace myslam {
 void Map::InsertKeyFrame(Frame::Ptr frame) {
     if (keyframes_.find(frame->id_) == keyframes_.end()) {
         keyframes_.insert(make_pair(frame->id_, frame));
+        active_keyframes_.insert(make_pair(frame->id_, frame));
     } else {
         keyframes_[frame->id_] = frame;
+        active_keyframes_[frame->id_] = frame;
     }
 }
 
 void Map::InsertMapPoint(MapPoint::Ptr map_point) {
     if (landmarks_.find(map_point->id_) == landmarks_.end()) {
         landmarks_.insert(make_pair(map_point->id_, map_point));
+        active_landmarks_.insert(make_pair(map_point->id_, map_point));
     } else {
         landmarks_[map_point->id_] = map_point;
+        active_landmarks_[map_point->id_] = map_point;
     }
 }
 

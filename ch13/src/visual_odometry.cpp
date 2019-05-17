@@ -25,6 +25,9 @@ bool VisualOdometry::Init() {
 
     frontend_->SetBackend(backend_);
     frontend_->SetMap(map_);
+    frontend_->SetViewer(viewer_);
+
+    viewer_->SetMap(map_);
 
     return true;
 }

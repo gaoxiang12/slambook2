@@ -10,13 +10,15 @@
 #include "myslam/config.h"
 #include "myslam/feature.h"
 #include "myslam/frontend.h"
-#include "myslam/map.h"
 #include "myslam/g2o_types.h"
+#include "myslam/map.h"
+#include "myslam/viewer.h"
 
 namespace myslam {
 
 Frontend::Frontend() {
-    gftt_ = cv::GFTTDetector::create(Config::Get<int>("num_features"), 0.01, 20);
+    gftt_ =
+        cv::GFTTDetector::create(Config::Get<int>("num_features"), 0.01, 20);
     num_features_init_ = Config::Get<int>("num_features_init");
 }
 
@@ -60,26 +62,26 @@ bool Frontend::Track() {
 }
 
 bool Frontend::InsertKeyframe() {
-    if (current_frame_->features_left_.size() >= num_features_needed_for_keyframe_) {
+    if (current_frame_->features_left_.size() >=
+        num_features_needed_for_keyframe_) {
         // still have enough features, don't insert keyframe
         return false;
     }
-
-
-
 }
 
 int Frontend::EstimateCurrentPose() {
     // setup g2o
     typedef g2o::BlockSolver<g2o::BlockSolverTraits<6, 3>> BlockSolverType;
-    typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType> LinearSolverType;
+    typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType>
+        LinearSolverType;
     auto solver = new g2o::OptimizationAlgorithmLevenberg(
-            g2o::make_unique<BlockSolverType>(g2o::make_unique<LinearSolverType>()));
+        g2o::make_unique<BlockSolverType>(
+            g2o::make_unique<LinearSolverType>()));
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm(solver);
 
     // vertex
-    VertexPose *vertex_pose = new VertexPose(); // camera vertex_pose
+    VertexPose *vertex_pose = new VertexPose();  // camera vertex_pose
     vertex_pose->setId(0);
     vertex_pose->setEstimate(current_frame_->Pose());
     optimizer.addVertex(vertex_pose);
@@ -95,10 +97,12 @@ int Frontend::EstimateCurrentPose() {
         auto mp = current_frame_->features_left_[i]->map_point_.lock();
         if (mp) {
             features.push_back(current_frame_->features_left_[i]);
-            EdgeProjectionPoseOnly *edge = new EdgeProjectionPoseOnly(mp->pos_, K);
+            EdgeProjectionPoseOnly *edge =
+                new EdgeProjectionPoseOnly(mp->pos_, K);
             edge->setId(index);
             edge->setVertex(0, vertex_pose);
-            edge->setMeasurement(toVec2(current_frame_->features_left_[i]->position_.pt));
+            edge->setMeasurement(
+                toVec2(current_frame_->features_left_[i]->position_.pt));
             edge->setInformation(Eigen::Matrix2d::Identity());
             edge->setRobustKernel(new g2o::RobustKernelHuber);
             edges.push_back(edge);
@@ -174,6 +178,9 @@ bool Frontend::StereoInit() {
     bool build_map_success = BuildInitMap();
     if (build_map_success) {
         status_ = FrontendStatus::TRACKING_GOOD;
+        if (viewer_) {
+            viewer_->UpdateMap();
+        }
         return true;
     }
     return false;
@@ -184,7 +191,7 @@ int Frontend::DetectFeatures() {
     gftt_->detect(current_frame_->left_img_, keypoints);
     for (auto &kp : keypoints) {
         current_frame_->features_left_.push_back(
-                std::make_shared<Feature>(current_frame_, kp));
+            std::make_shared<Feature>(current_frame_, kp));
     }
     return keypoints.size();
 }
@@ -198,7 +205,7 @@ int Frontend::FindFeaturesInRight() {
         if (mp) {
             // use projected points as initial guess
             auto px =
-                    camera_right_->world2pixel(mp->pos_, current_frame_->Pose());
+                camera_right_->world2pixel(mp->pos_, current_frame_->Pose());
             kps_right.push_back(cv::Point2f(px[0], px[1]));
         } else {
             // use same pixel in left iamge
@@ -217,7 +224,7 @@ int Frontend::FindFeaturesInRight() {
         if (status[i]) {
             cv::KeyPoint kp(kps_right[i], 7);
             current_frame_->features_right_.push_back(
-                    std::make_shared<Feature>(current_frame_, kp));
+                std::make_shared<Feature>(current_frame_, kp));
             num_good_pts++;
         } else {
             current_frame_->features_right_.push_back(nullptr);
@@ -232,12 +239,12 @@ bool Frontend::BuildInitMap() {
         if (current_frame_->features_right_[i] == nullptr) continue;
         // create map point from triangulation
         std::vector<Vec3> points{
-                camera_left_->pixel2camera(
-                        Vec2(current_frame_->features_left_[i]->position_.pt.x,
-                             current_frame_->features_left_[i]->position_.pt.y)),
-                camera_right_->pixel2camera(
-                        Vec2(current_frame_->features_right_[i]->position_.pt.x,
-                             current_frame_->features_right_[i]->position_.pt.y))};
+            camera_left_->pixel2camera(
+                Vec2(current_frame_->features_left_[i]->position_.pt.x,
+                     current_frame_->features_left_[i]->position_.pt.y)),
+            camera_right_->pixel2camera(
+                Vec2(current_frame_->features_right_[i]->position_.pt.x,
+                     current_frame_->features_right_[i]->position_.pt.y))};
         Vec3 pworld = Vec3::Zero();
         triangulation(poses, points, pworld);
 
@@ -245,9 +252,9 @@ bool Frontend::BuildInitMap() {
         new_map_point->pos_ = pworld;
         new_map_point->observed_times_ = 2;
         new_map_point->_observations.push_back(
-                current_frame_->features_left_[i]);
+            current_frame_->features_left_[i]);
         new_map_point->_observations.push_back(
-                current_frame_->features_right_[i]);
+            current_frame_->features_right_[i]);
 
         map_->InsertMapPoint(new_map_point);
     }
@@ -256,8 +263,6 @@ bool Frontend::BuildInitMap() {
     return true;
 }
 
-bool Frontend::Reset() {
-    return true;
-}
+bool Frontend::Reset() { return true; }
 
 }  // namespace myslam

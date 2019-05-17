@@ -26,6 +26,13 @@ public:
      */
     void Run();
 
+    /**
+     * Make a step forward in dataset
+     */
+    void Step();
+
+    FrontendStatus GetFrontendStatus() const {return frontend_->GetStatus();}
+
 private:
     bool inited_ = false;
     std::string config_file_path_;
@@ -34,6 +41,8 @@ private:
     Backend::Ptr backend_;
     Map::Ptr map_;
     Viewer::Ptr viewer_;
+
+    // dataset
 
 };
 }

@@ -11,16 +11,13 @@
 namespace myslam {
 
 class Backend;
+class Viewer;
+
+enum class FrontendStatus { INITING, TRACKING_GOOD, TRACKING_BAD, LOST };
 
 class Frontend {
-public:
+   public:
     typedef std::shared_ptr<Frontend> Ptr;
-    enum class FrontendStatus {
-        INITING,
-        TRACKING_GOOD,
-        TRACKING_BAD,
-        LOST
-    };
 
     Frontend();
 
@@ -30,9 +27,11 @@ public:
 
     void SetBackend(std::shared_ptr<Backend> backend) { backend_ = backend; }
 
+    void SetViewer(std::shared_ptr<Viewer> viewer) { viewer_ = viewer; }
+
     FrontendStatus GetStatus() const { return status_; }
 
-private:
+   private:
     /**
      * Track in normal mode
      * @return true if success
@@ -99,6 +98,7 @@ private:
 
     Map::Ptr map_ = nullptr;
     std::shared_ptr<Backend> backend_ = nullptr;
+    std::shared_ptr<Viewer> viewer_ = nullptr;
 
     // params
     int num_features_init_ = 100;
@@ -107,9 +107,9 @@ private:
     int num_features_needed_for_keyframe_ = 80;
 
     // utilities
-    cv::Ptr<cv::GFTTDetector> gftt_;    // feature detector in opencv
+    cv::Ptr<cv::GFTTDetector> gftt_;  // feature detector in opencv
 };
 
-}
+}  // namespace myslam
 
-#endif //MYSLAM_FRONTEND_H
+#endif  // MYSLAM_FRONTEND_H

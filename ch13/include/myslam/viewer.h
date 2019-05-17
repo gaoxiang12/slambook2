@@ -13,7 +13,7 @@
 
 namespace myslam {
 class Viewer {
-public:
+   public:
     typedef std::shared_ptr<Viewer> Ptr;
 
     Viewer();
@@ -22,16 +22,31 @@ public:
 
     void Close();
 
-private:
+    void AddCurrentFrame(Frame::Ptr current_frame);
+
+    void UpdateMap();
+
+   private:
     void ThreadLoop();
 
+    void DrawFrame(Frame::Ptr frame, const float* color);
+
+    void DrawMapPoints();
+
+    void FollowCurrentFrame(pangolin::OpenGlRenderState& vis_camera);
+
     Frame::Ptr current_frame_ = nullptr;
-    Map::Ptr map_;
+    Map::Ptr map_ = nullptr;
 
     std::thread viewer_thread_;
     bool viewer_running_ = true;
 
-};
-}
+    std::unordered_map<unsigned long, Frame::Ptr> active_keyframes_;
+    std::unordered_map<unsigned long, MapPoint::Ptr> active_landmarks_;
+    bool map_updated_ = false;
 
-#endif //MYSLAM_VIEWER_H
+    std::mutex viewer_data_mutex_;
+};
+}  // namespace myslam
+
+#endif  // MYSLAM_VIEWER_H
