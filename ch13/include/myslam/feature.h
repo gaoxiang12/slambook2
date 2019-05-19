@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <opencv2/features2d.hpp>
+#include "myslam/common_include.h"
 
 namespace myslam {
 
@@ -16,6 +17,7 @@ struct MapPoint;
 
 struct Feature {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<Feature> Ptr;
     std::weak_ptr<Frame> frame_;
     cv::KeyPoint position_;

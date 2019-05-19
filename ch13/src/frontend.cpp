@@ -44,7 +44,9 @@ bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
 
 bool Frontend::Track() {
     int num_track_last = TrackLastFrame();
-    EstimateCurrentPose();
+    tracking_inliers_ = EstimateCurrentPose();
+
+    DetectFeatures();  // detect new features
 
     if (num_track_last > num_features_tracking_) {
         // tracking good
@@ -62,16 +64,24 @@ bool Frontend::Track() {
 }
 
 bool Frontend::InsertKeyframe() {
-    if (current_frame_->features_left_.size() >=
-        num_features_needed_for_keyframe_) {
+    if (tracking_inliers_ >= num_features_needed_for_keyframe_) {
         // still have enough features, don't insert keyframe
         return false;
     }
+
+    // current frame is a new keyframe
+    current_frame_->is_keyframe_ = true;
+    // track in right image
+    FindFeaturesInRight();
+    // triangulate map points
+    TriangulateNewPoints();
+
+    return true;
 }
 
 int Frontend::EstimateCurrentPose() {
     // setup g2o
-    typedef g2o::BlockSolver<g2o::BlockSolverTraits<6, 3>> BlockSolverType;
+    typedef g2o::BlockSolverX BlockSolverType;
     typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType>
         LinearSolverType;
     auto solver = new g2o::OptimizationAlgorithmLevenberg(
@@ -141,7 +151,16 @@ int Frontend::EstimateCurrentPose() {
         }
     }
 
+    LOG(INFO) << "Outlier/Inlier in pose estimating: " << cnt_outlier << "/"
+              << features.size() - cnt_outlier;
+    // Set pose and outlier
     current_frame_->SetPose(vertex_pose->estimate());
+    for (auto &feat : features) {
+        if (feat->is_outlier_) {
+            feat->map_point_.reset();
+            feat->is_outlier_ = false;  // maybe we can still use it in future
+        }
+    }
     return features.size() - cnt_outlier;
 }
 
@@ -161,24 +180,28 @@ int Frontend::TrackLastFrame() {
     for (size_t i = 0; i < status.size(); ++i) {
         if (status[i]) {
             cv::KeyPoint kp(kps_current[i], 7);
-            auto feature = std::make_shared<Feature>(current_frame_, kp);
+            Feature::Ptr feature(new Feature(current_frame_, kp));
             feature->map_point_ = last_frame_->features_left_[i]->map_point_;
             current_frame_->features_left_.push_back(feature);
             num_good_pts++;
         }
     }
     LOG(INFO) << "Find " << num_good_pts << " in the last image.";
+    return num_good_pts;
 }
 
 bool Frontend::StereoInit() {
     int num_features_left = DetectFeatures();
     int num_coor_features = FindFeaturesInRight();
-    if (num_coor_features < num_features_init_) return false;
+    if (num_coor_features < num_features_init_) {
+        return false;
+    }
 
     bool build_map_success = BuildInitMap();
     if (build_map_success) {
         status_ = FrontendStatus::TRACKING_GOOD;
         if (viewer_) {
+            viewer_->AddCurrentFrame(current_frame_);
             viewer_->UpdateMap();
         }
         return true;
@@ -187,11 +210,17 @@ bool Frontend::StereoInit() {
 }
 
 int Frontend::DetectFeatures() {
+    cv::Mat mask(current_frame_->left_img_.size(), CV_8UC1, 255);
+    for (auto &feat : current_frame_->features_left_) {
+        cv::rectangle(mask, feat->position_.pt - cv::Point2f(10, 10),
+                      feat->position_.pt + cv::Point2f(10, 10), 0);
+    }
+
     std::vector<cv::KeyPoint> keypoints;
     gftt_->detect(current_frame_->left_img_, keypoints);
     for (auto &kp : keypoints) {
         current_frame_->features_left_.push_back(
-            std::make_shared<Feature>(current_frame_, kp));
+            Feature::Ptr(new Feature(current_frame_, kp)));
     }
     return keypoints.size();
 }
@@ -224,17 +253,19 @@ int Frontend::FindFeaturesInRight() {
         if (status[i]) {
             cv::KeyPoint kp(kps_right[i], 7);
             current_frame_->features_right_.push_back(
-                std::make_shared<Feature>(current_frame_, kp));
+                Feature::Ptr(new Feature(current_frame_, kp)));
             num_good_pts++;
         } else {
             current_frame_->features_right_.push_back(nullptr);
         }
     }
     LOG(INFO) << "Find " << num_good_pts << " in the right image.";
+    return num_good_pts;
 }
 
 bool Frontend::BuildInitMap() {
     std::vector<SE3> poses{camera_left_->pose(), camera_right_->pose()};
+    size_t cnt_init_landmarks = 0;
     for (size_t i = 0; i < current_frame_->features_left_.size(); ++i) {
         if (current_frame_->features_right_[i] == nullptr) continue;
         // create map point from triangulation
@@ -246,19 +277,25 @@ bool Frontend::BuildInitMap() {
                 Vec2(current_frame_->features_right_[i]->position_.pt.x,
                      current_frame_->features_right_[i]->position_.pt.y))};
         Vec3 pworld = Vec3::Zero();
-        triangulation(poses, points, pworld);
 
-        auto new_map_point = MapPoint::CreateNewMappoint();
-        new_map_point->pos_ = pworld;
-        new_map_point->observed_times_ = 2;
-        new_map_point->_observations.push_back(
-            current_frame_->features_left_[i]);
-        new_map_point->_observations.push_back(
-            current_frame_->features_right_[i]);
-
-        map_->InsertMapPoint(new_map_point);
+        if (triangulation(poses, points, pworld) && pworld[2] > 0) {
+            auto new_map_point = MapPoint::CreateNewMappoint();
+            new_map_point->pos_ = pworld;
+            new_map_point->observed_times_ = 2;
+            new_map_point->_observations.push_back(
+                current_frame_->features_left_[i]);
+            new_map_point->_observations.push_back(
+                current_frame_->features_right_[i]);
+            current_frame_->features_left_[i]->map_point_ = new_map_point;
+            current_frame_->features_right_[i]->map_point_ = new_map_point;
+            cnt_init_landmarks++;
+            map_->InsertMapPoint(new_map_point);
+        }
     }
+    current_frame_->is_keyframe_ = true;
     map_->InsertKeyFrame(current_frame_);
+    LOG(INFO) << "Initial map created with " << cnt_init_landmarks
+              << " map points";
 
     return true;
 }

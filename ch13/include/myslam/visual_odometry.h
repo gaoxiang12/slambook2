@@ -2,15 +2,17 @@
 #ifndef MYSLAM_VISUAL_ODOMETRY_H
 #define MYSLAM_VISUAL_ODOMETRY_H
 
-#include "myslam/common_include.h"
-#include "myslam/frontend.h"
 #include "myslam/backend.h"
+#include "myslam/common_include.h"
+#include "myslam/dataset.h"
+#include "myslam/frontend.h"
 #include "myslam/viewer.h"
 
 namespace myslam {
 
 class VisualOdometry {
-public:
+   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<VisualOdometry> Ptr;
     /// constructor with config file
     VisualOdometry(std::string &config_path);
@@ -29,22 +31,22 @@ public:
     /**
      * Make a step forward in dataset
      */
-    void Step();
+    bool Step();
 
-    FrontendStatus GetFrontendStatus() const {return frontend_->GetStatus();}
+    FrontendStatus GetFrontendStatus() const { return frontend_->GetStatus(); }
 
-private:
+   private:
     bool inited_ = false;
     std::string config_file_path_;
 
-    Frontend::Ptr frontend_;
-    Backend::Ptr backend_;
-    Map::Ptr map_;
-    Viewer::Ptr viewer_;
+    Frontend::Ptr frontend_ = nullptr;
+    Backend::Ptr backend_ = nullptr;
+    Map::Ptr map_ = nullptr;
+    Viewer::Ptr viewer_ = nullptr;
 
     // dataset
-
+    Dataset::Ptr dataset_ = nullptr;
 };
-}
+}  // namespace myslam
 
-#endif // MYSLAM_VISUAL_ODOMETRY_H
+#endif  // MYSLAM_VISUAL_ODOMETRY_H

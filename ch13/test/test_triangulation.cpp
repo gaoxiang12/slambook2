@@ -13,7 +13,7 @@ TEST(MyslamTest, Triangulation) {
             SE3(Eigen::Quaterniond(0, 0, 0, 1), Vec3(0, 10, 0)),
     };
     std::vector<Vec3> points;
-    for (int i = 0; i < poses.size(); ++i) {
+    for (size_t i = 0; i < poses.size(); ++i) {
         Vec3 pc = poses[i] * pt_world;
         pc /= pc[2];
         points.push_back(pc);

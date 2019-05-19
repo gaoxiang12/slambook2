@@ -12,6 +12,7 @@ class Map;
 
 class Backend {
    public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<Backend> Ptr;
     Backend() {}
 

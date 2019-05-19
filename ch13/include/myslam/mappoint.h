@@ -10,6 +10,7 @@ struct Feature;
 
 struct MapPoint {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<MapPoint> Ptr;
     unsigned long id_ = 0; // ID
     bool is_outlier_ = false;

@@ -10,7 +10,8 @@ DEFINE_string(config_file, "./config/default.yaml", "config file path");
 int main(int argc, char **argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
-    auto vo = std::make_shared<myslam::VisualOdometry>(FLAGS_config_file);
+    myslam::VisualOdometry::Ptr vo(
+        new myslam::VisualOdometry(FLAGS_config_file));
     assert(vo->Init() == true);
     vo->Run();
 

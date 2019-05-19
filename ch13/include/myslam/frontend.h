@@ -17,6 +17,7 @@ enum class FrontendStatus { INITING, TRACKING_GOOD, TRACKING_BAD, LOST };
 
 class Frontend {
    public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<Frontend> Ptr;
 
     Frontend();
@@ -30,6 +31,11 @@ class Frontend {
     void SetViewer(std::shared_ptr<Viewer> viewer) { viewer_ = viewer; }
 
     FrontendStatus GetStatus() const { return status_; }
+
+    void SetCameras(Camera::Ptr left, Camera::Ptr right) {
+        camera_left_ = left;
+        camera_right_ = right;
+    }
 
    private:
     /**
@@ -87,6 +93,12 @@ class Frontend {
      */
     bool BuildInitMap();
 
+    /**
+     * Triangulate the 2D points in current frame
+     * @return num of triangulated points
+     */
+    int TriangulateNewPoints();
+
     // data
     FrontendStatus status_ = FrontendStatus::INITING;
 
@@ -100,11 +112,13 @@ class Frontend {
     std::shared_ptr<Backend> backend_ = nullptr;
     std::shared_ptr<Viewer> viewer_ = nullptr;
 
+    size_t tracking_inliers_ = 0;  // inliers, used for testing new keyframes
+
     // params
-    int num_features_init_ = 100;
-    int num_features_tracking_ = 50;
-    int num_features_tracking_bad_ = 20;
-    int num_features_needed_for_keyframe_ = 80;
+    size_t num_features_init_ = 100;
+    size_t num_features_tracking_ = 50;
+    size_t num_features_tracking_bad_ = 20;
+    size_t num_features_needed_for_keyframe_ = 80;
 
     // utilities
     cv::Ptr<cv::GFTTDetector> gftt_;  // feature detector in opencv

@@ -1,9 +1,12 @@
 //
 // Created by gaoxiang on 19-5-4.
 //
-#include <pangolin/pangolin.h>
-
 #include "myslam/viewer.h"
+#include "myslam/feature.h"
+#include "myslam/frame.h"
+
+#include <pangolin/pangolin.h>
+#include <opencv2/opencv.hpp>
 
 namespace myslam {
 
@@ -42,19 +45,32 @@ void Viewer::ThreadLoop() {
     // Add named OpenGL viewport to window and provide 3D Handler
     pangolin::View& vis_display =
         pangolin::CreateDisplay()
-            .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0,
-                       -1024.0f / 768.0f)
+            .SetBounds(0.3, 1.0, 0.0, 1.0, -1024.0f / 768.0f)
             .SetHandler(new pangolin::Handler3D(vis_camera));
+
+    pangolin::View& image =
+        pangolin::Display("frame image").SetAspect((float)1241 / 376);
+    pangolin::GlTexture texture(1241, 376, GL_RGB, false, 0, GL_RGB,
+                                GL_UNSIGNED_BYTE);
+
+    pangolin::CreateDisplay().SetBounds(0.0, 0.3, 0.0, 1.0).AddDisplay(image);
+    const float blue[3] = {0, 0, 1};
+    const float green[3] = {0, 1, 0};
 
     while (!pangolin::ShouldQuit() && viewer_running_) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        const float blue[3] = {0, 0, 1};
-        const float green[3] = {0, 1, 0};
 
+        std::unique_lock<std::mutex> lock(viewer_data_mutex_);
         if (current_frame_) {
             DrawFrame(current_frame_, green);
             FollowCurrentFrame(vis_camera);
+
+            cv::Mat img = PlotFrameImage();
+            texture.Upload(img.data, GL_BGR, GL_UNSIGNED_BYTE);
+            image.Activate();
+            glColor4f(1.0, 1.0, 1.0, 1.0);
+            texture.RenderToViewportFlipY();
         }
 
         if (map_) {
@@ -66,6 +82,19 @@ void Viewer::ThreadLoop() {
     }
 
     LOG(INFO) << "Stop viewer";
+}
+
+cv::Mat Viewer::PlotFrameImage() {
+    cv::Mat img_out;
+    cv::cvtColor(current_frame_->left_img_, img_out, CV_GRAY2BGR);
+    for (size_t i = 0; i < current_frame_->features_left_.size(); ++i) {
+        if (current_frame_->features_left_[i]->map_point_.lock()) {
+            auto feat = current_frame_->features_left_[i];
+            cv::circle(img_out, feat->position_.pt, 2, cv::Scalar(0, 250, 0),
+                       2);
+        }
+    }
+    return img_out;
 }
 
 void Viewer::FollowCurrentFrame(pangolin::OpenGlRenderState& vis_camera) {
