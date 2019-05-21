@@ -22,7 +22,9 @@ public:
     std::weak_ptr<Frame> frame_;
     cv::KeyPoint position_;
     std::weak_ptr<MapPoint> map_point_;
+
     bool is_outlier_ = false;
+    bool is_on_left_image_ = true;
 
 public:
     Feature() {}

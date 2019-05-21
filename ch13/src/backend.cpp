@@ -6,4 +6,6 @@
 
 namespace myslam {
 
-}
+void Backend::UpdateMap() {}
+
+}  // namespace myslam

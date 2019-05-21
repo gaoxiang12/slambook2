@@ -49,6 +49,9 @@ public: // data members
         pose_ = pose;
     }
 
+    /// set this frame as a keyframe and allocate keyframe id
+    void SetKeyFrame();
+
     // factory function
     static std::shared_ptr<Frame> CreateFrame();
 };

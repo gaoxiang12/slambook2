@@ -7,6 +7,7 @@
 #include <opencv2/video.hpp>
 
 #include "myslam/algorithm.h"
+#include "myslam/backend.h"
 #include "myslam/config.h"
 #include "myslam/feature.h"
 #include "myslam/frontend.h"
@@ -46,12 +47,10 @@ bool Frontend::Track() {
     int num_track_last = TrackLastFrame();
     tracking_inliers_ = EstimateCurrentPose();
 
-    DetectFeatures();  // detect new features
-
-    if (num_track_last > num_features_tracking_) {
+    if (tracking_inliers_ > num_features_tracking_) {
         // tracking good
         status_ = FrontendStatus::TRACKING_GOOD;
-    } else if (num_track_last > num_features_tracking_bad_) {
+    } else if (tracking_inliers_ > num_features_tracking_bad_) {
         // tracking bad
         status_ = FrontendStatus::TRACKING_BAD;
     } else {
@@ -60,6 +59,8 @@ bool Frontend::Track() {
     }
 
     InsertKeyframe();
+
+    if (viewer_) viewer_->AddCurrentFrame(current_frame_);
     return true;
 }
 
@@ -68,15 +69,72 @@ bool Frontend::InsertKeyframe() {
         // still have enough features, don't insert keyframe
         return false;
     }
-
     // current frame is a new keyframe
-    current_frame_->is_keyframe_ = true;
+    current_frame_->SetKeyFrame();
+
+    LOG(INFO) << "Set frame " << current_frame_->id_ << " as keyframe "
+              << current_frame_->keyframe_id_;
+    SetObservationsForKeyFrame();
+    DetectFeatures();  // detect new features
+
     // track in right image
     FindFeaturesInRight();
     // triangulate map points
     TriangulateNewPoints();
+    // update backend because we have a new keyframe
+    backend_->UpdateMap();
+
+    if (viewer_) viewer_->UpdateMap();
 
     return true;
+}
+
+void Frontend::SetObservationsForKeyFrame() {
+    for (auto &feat : current_frame_->features_left_) {
+        auto mp = feat->map_point_.lock();
+        if (mp) {
+            mp->observed_times_++;
+            mp->observations_.push_back(feat);
+        }
+    }
+}
+
+int Frontend::TriangulateNewPoints() {
+    std::vector<SE3> poses{camera_left_->pose(), camera_right_->pose()};
+    SE3 current_pose_Twc = current_frame_->Pose().inverse();
+    int cnt_triangulated_pts = 0;
+    for (size_t i = 0; i < current_frame_->features_left_.size(); ++i) {
+        if (current_frame_->features_left_[i]->map_point_.expired() &&
+            current_frame_->features_right_[i] != nullptr) {
+            // 左图的特征点未关联地图点且存在右图匹配点，尝试三角化
+            std::vector<Vec3> points{
+                camera_left_->pixel2camera(
+                    Vec2(current_frame_->features_left_[i]->position_.pt.x,
+                         current_frame_->features_left_[i]->position_.pt.y)),
+                camera_right_->pixel2camera(
+                    Vec2(current_frame_->features_right_[i]->position_.pt.x,
+                         current_frame_->features_right_[i]->position_.pt.y))};
+            Vec3 pworld = Vec3::Zero();
+
+            if (triangulation(poses, points, pworld) && pworld[2] > 0) {
+                auto new_map_point = MapPoint::CreateNewMappoint();
+                pworld = current_pose_Twc * pworld;
+                new_map_point->pos_ = pworld;
+                new_map_point->observed_times_ = 2;
+                new_map_point->_observations.push_back(
+                    current_frame_->features_left_[i]);
+                new_map_point->_observations.push_back(
+                    current_frame_->features_right_[i]);
+
+                current_frame_->features_left_[i]->map_point_ = new_map_point;
+                current_frame_->features_right_[i]->map_point_ = new_map_point;
+                map_->InsertMapPoint(new_map_point);
+                cnt_triangulated_pts++;
+            }
+        }
+    }
+    LOG(INFO) << "new landmarks: " << cnt_triangulated_pts;
+    return cnt_triangulated_pts;
 }
 
 int Frontend::EstimateCurrentPose() {
@@ -222,6 +280,7 @@ int Frontend::DetectFeatures() {
         current_frame_->features_left_.push_back(
             Feature::Ptr(new Feature(current_frame_, kp)));
     }
+    LOG(INFO) << "Detect " << keypoints.size() << " new features";
     return keypoints.size();
 }
 
@@ -292,7 +351,7 @@ bool Frontend::BuildInitMap() {
             map_->InsertMapPoint(new_map_point);
         }
     }
-    current_frame_->is_keyframe_ = true;
+    current_frame_->SetKeyFrame();
     map_->InsertKeyFrame(current_frame_);
     LOG(INFO) << "Initial map created with " << cnt_init_landmarks
               << " map points";

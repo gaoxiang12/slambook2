@@ -6,6 +6,7 @@
 #define MYSLAM_BACKEND_H
 
 #include "myslam/common_include.h"
+#include "myslam/frame.h"
 
 namespace myslam {
 class Map;
@@ -17,6 +18,8 @@ class Backend {
     Backend() {}
 
     void SetMap(std::shared_ptr<Map> map) { map_ = map; }
+
+    void UpdateMap();
 
    private:
     std::shared_ptr<Map> map_;

@@ -99,6 +99,11 @@ class Frontend {
      */
     int TriangulateNewPoints();
 
+    /**
+     * Set the features in keyframe as new observation of the map points
+     */
+    void SetObservationsForKeyFrame();
+
     // data
     FrontendStatus status_ = FrontendStatus::INITING;
 
@@ -112,13 +117,13 @@ class Frontend {
     std::shared_ptr<Backend> backend_ = nullptr;
     std::shared_ptr<Viewer> viewer_ = nullptr;
 
-    size_t tracking_inliers_ = 0;  // inliers, used for testing new keyframes
+    int tracking_inliers_ = 0;  // inliers, used for testing new keyframes
 
     // params
-    size_t num_features_init_ = 100;
-    size_t num_features_tracking_ = 50;
-    size_t num_features_tracking_bad_ = 20;
-    size_t num_features_needed_for_keyframe_ = 80;
+    int num_features_init_ = 100;
+    int num_features_tracking_ = 50;
+    int num_features_tracking_bad_ = 20;
+    int num_features_needed_for_keyframe_ = 80;
 
     // utilities
     cv::Ptr<cv::GFTTDetector> gftt_;  // feature detector in opencv
