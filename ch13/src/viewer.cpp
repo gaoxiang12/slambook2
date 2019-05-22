@@ -45,32 +45,26 @@ void Viewer::ThreadLoop() {
     // Add named OpenGL viewport to window and provide 3D Handler
     pangolin::View& vis_display =
         pangolin::CreateDisplay()
-            .SetBounds(0.3, 1.0, 0.0, 1.0, -1024.0f / 768.0f)
+            .SetBounds(0.0, 1.0, 0.0, 1.0, -1024.0f / 768.0f)
             .SetHandler(new pangolin::Handler3D(vis_camera));
 
-    pangolin::View& image =
-        pangolin::Display("frame image").SetAspect((float)1241 / 376);
-    pangolin::GlTexture texture(1241, 376, GL_RGB, false, 0, GL_RGB,
-                                GL_UNSIGNED_BYTE);
-
-    pangolin::CreateDisplay().SetBounds(0.0, 0.3, 0.0, 1.0).AddDisplay(image);
     const float blue[3] = {0, 0, 1};
     const float green[3] = {0, 1, 0};
 
     while (!pangolin::ShouldQuit() && viewer_running_) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        vis_display.Activate(vis_camera);
 
         std::unique_lock<std::mutex> lock(viewer_data_mutex_);
         if (current_frame_) {
+            LOG(INFO) << "draw current frame";
             DrawFrame(current_frame_, green);
-            FollowCurrentFrame(vis_camera);
+            // FollowCurrentFrame(vis_camera);
 
             cv::Mat img = PlotFrameImage();
-            texture.Upload(img.data, GL_BGR, GL_UNSIGNED_BYTE);
-            image.Activate();
-            glColor4f(1.0, 1.0, 1.0, 1.0);
-            texture.RenderToViewportFlipY();
+            cv::imshow("image", img);
+            cv::waitKey(1);
         }
 
         if (map_) {
@@ -117,6 +111,7 @@ void Viewer::DrawFrame(Frame::Ptr frame, const float* color) {
     glPushMatrix();
 
     Sophus::Matrix4f m = Twc.matrix().template cast<float>();
+    LOG(INFO) << "pose matrix: \n" << m;
     glMultMatrixf((GLfloat*)m.data());
 
     if (color == nullptr) {
@@ -157,11 +152,14 @@ void Viewer::DrawMapPoints() {
         DrawFrame(kf.second, red);
     }
 
+    glPointSize(2);
+    glBegin(GL_POINTS);
     for (auto& landmark : active_landmarks_) {
         auto pos = landmark.second->Pos();
         glColor3f(red[0], red[1], red[2]);
         glVertex3d(pos[0], pos[1], pos[2]);
     }
+    glEnd();
 }
 
 }  // namespace myslam

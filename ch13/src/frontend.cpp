@@ -2,9 +2,7 @@
 // Created by gaoxiang on 19-5-2.
 //
 
-#include <opencv2/calib3d.hpp>
-#include <opencv2/features2d.hpp>
-#include <opencv2/video.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "myslam/algorithm.h"
 #include "myslam/backend.h"
@@ -119,11 +117,11 @@ int Frontend::TriangulateNewPoints() {
             if (triangulation(poses, points, pworld) && pworld[2] > 0) {
                 auto new_map_point = MapPoint::CreateNewMappoint();
                 pworld = current_pose_Twc * pworld;
-                new_map_point->pos_ = pworld;
+                new_map_point->SetPos(pworld);
                 new_map_point->observed_times_ = 2;
-                new_map_point->_observations.push_back(
+                new_map_point->AddObservation(
                     current_frame_->features_left_[i]);
-                new_map_point->_observations.push_back(
+                new_map_point->AddObservation(
                     current_frame_->features_right_[i]);
 
                 current_frame_->features_left_[i]->map_point_ = new_map_point;
@@ -235,6 +233,9 @@ int Frontend::TrackLastFrame() {
                              kps_last, kps_current, status, error);
 
     int num_good_pts = 0;
+    cv::Mat img_show;
+    cv::cvtColor(current_frame_->left_img_, img_show, CV_GRAY2BGR);
+
     for (size_t i = 0; i < status.size(); ++i) {
         if (status[i]) {
             cv::KeyPoint kp(kps_current[i], 7);
@@ -242,8 +243,14 @@ int Frontend::TrackLastFrame() {
             feature->map_point_ = last_frame_->features_left_[i]->map_point_;
             current_frame_->features_left_.push_back(feature);
             num_good_pts++;
+
+            cv::circle(img_show, kp.pt, 2, cv::Scalar(0, 250, 0), 2);
+            cv::line(img_show, kp.pt, kps_last[i], cv::Scalar(0, 250, 0), 2);
         }
     }
+    // cv::imshow("LK track", img_show);
+    // cv::waitKey();
+
     LOG(INFO) << "Find " << num_good_pts << " in the last image.";
     return num_good_pts;
 }
@@ -271,8 +278,11 @@ int Frontend::DetectFeatures() {
     cv::Mat mask(current_frame_->left_img_.size(), CV_8UC1, 255);
     for (auto &feat : current_frame_->features_left_) {
         cv::rectangle(mask, feat->position_.pt - cv::Point2f(10, 10),
-                      feat->position_.pt + cv::Point2f(10, 10), 0);
+                      feat->position_.pt + cv::Point2f(10, 10), 0, CV_FILLED);
     }
+
+    // cv::imshow("mask", mask);
+    // cv::waitKey();
 
     std::vector<cv::KeyPoint> keypoints;
     gftt_->detect(current_frame_->left_img_, keypoints);
@@ -339,12 +349,10 @@ bool Frontend::BuildInitMap() {
 
         if (triangulation(poses, points, pworld) && pworld[2] > 0) {
             auto new_map_point = MapPoint::CreateNewMappoint();
-            new_map_point->pos_ = pworld;
+            new_map_point->SetPos(pworld);
             new_map_point->observed_times_ = 2;
-            new_map_point->_observations.push_back(
-                current_frame_->features_left_[i]);
-            new_map_point->_observations.push_back(
-                current_frame_->features_right_[i]);
+            new_map_point->AddObservation(current_frame_->features_left_[i]);
+            new_map_point->AddObservation(current_frame_->features_right_[i]);
             current_frame_->features_left_[i]->map_point_ = new_map_point;
             current_frame_->features_right_[i]->map_point_ = new_map_point;
             cnt_init_landmarks++;

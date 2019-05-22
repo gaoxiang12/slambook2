@@ -16,7 +16,7 @@ public:
     bool is_outlier_ = false;
     Vec3 pos_ = Vec3::Zero();       // Position in world
 
-    std::mutex pos_mutex_;
+    std::mutex data_mutex_;
     int observed_times_ = 0;    // being observed by feature matching algo.
     std::list<std::weak_ptr<Feature>> observations_;
 
@@ -25,14 +25,19 @@ public:
     MapPoint(long id, Vec3 position);
 
     Vec3 Pos() {
-        std::unique_lock<std::mutex> lck(pos_mutex_);
+        std::unique_lock<std::mutex> lck(data_mutex_);
         return pos_;
     }
 
     void SetPos(const Vec3 &pos) {
-        std::unique_lock<std::mutex> lck(pos_mutex_);
+        std::unique_lock<std::mutex> lck(data_mutex_);
         pos_ = pos;
     };
+
+    void AddObservation(std::shared_ptr<Feature> feature) {
+        std::unique_lock<std::mutex> lck(data_mutex_);
+        observations_.push_back(feature);
+    }
 
     // factory function
     static MapPoint::Ptr CreateNewMappoint();
