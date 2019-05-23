@@ -8,11 +8,14 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <atomic>
 #include <string>
 #include <iostream>
 #include <set>
 #include <unordered_map>
+#include <condition_variable>
 #include <map>
+#include <thread>
 
 // define the commonly included file to avoid a long include list
 #include <Eigen/Core>

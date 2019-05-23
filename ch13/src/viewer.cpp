@@ -58,7 +58,6 @@ void Viewer::ThreadLoop() {
 
         std::unique_lock<std::mutex> lock(viewer_data_mutex_);
         if (current_frame_) {
-            LOG(INFO) << "draw current frame";
             DrawFrame(current_frame_, green);
             // FollowCurrentFrame(vis_camera);
 
@@ -111,7 +110,6 @@ void Viewer::DrawFrame(Frame::Ptr frame, const float* color) {
     glPushMatrix();
 
     Sophus::Matrix4f m = Twc.matrix().template cast<float>();
-    LOG(INFO) << "pose matrix: \n" << m;
     glMultMatrixf((GLfloat*)m.data());
 
     if (color == nullptr) {

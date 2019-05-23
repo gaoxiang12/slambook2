@@ -2,6 +2,8 @@
 #ifndef MYSLAM_MAPPOINT_H
 #define MYSLAM_MAPPOINT_H
 
+#include "myslam/common_include.h"
+
 namespace myslam {
 
 struct Frame;
@@ -9,15 +11,15 @@ struct Frame;
 struct Feature;
 
 struct MapPoint {
-public:
+   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<MapPoint> Ptr;
-    unsigned long id_ = 0; // ID
+    unsigned long id_ = 0;  // ID
     bool is_outlier_ = false;
-    Vec3 pos_ = Vec3::Zero();       // Position in world
+    Vec3 pos_ = Vec3::Zero();  // Position in world
 
     std::mutex data_mutex_;
-    int observed_times_ = 0;    // being observed by feature matching algo.
+    int observed_times_ = 0;  // being observed by feature matching algo.
     std::list<std::weak_ptr<Feature>> observations_;
 
     MapPoint() {}
@@ -39,9 +41,15 @@ public:
         observations_.push_back(feature);
     }
 
+    std::list<std::weak_ptr<Feature>> GetObs() {
+        std::unique_lock<std::mutex> lck(data_mutex_);
+        return observations_;
+    }
+
+    void RemoveObservation(std::shared_ptr<Feature> feat);
     // factory function
     static MapPoint::Ptr CreateNewMappoint();
 };
-}
+}  // namespace myslam
 
-#endif // MYSLAM_MAPPOINT_H
+#endif  // MYSLAM_MAPPOINT_H

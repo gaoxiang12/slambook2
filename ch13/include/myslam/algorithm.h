@@ -17,7 +17,7 @@ namespace myslam {
  * @param pt_world  triangulated point in the world
  * @return true if success
  */
-bool triangulation(const std::vector<SE3> &poses,
+inline bool triangulation(const std::vector<SE3> &poses,
                    const std::vector<Vec3> points, Vec3 &pt_world) {
     MatXX A(2 * poses.size(), 4);
     VecX b(2 * poses.size());

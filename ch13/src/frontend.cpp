@@ -69,9 +69,11 @@ bool Frontend::InsertKeyframe() {
     }
     // current frame is a new keyframe
     current_frame_->SetKeyFrame();
+    map_->InsertKeyFrame(current_frame_);
 
     LOG(INFO) << "Set frame " << current_frame_->id_ << " as keyframe "
               << current_frame_->keyframe_id_;
+
     SetObservationsForKeyFrame();
     DetectFeatures();  // detect new features
 
@@ -321,8 +323,9 @@ int Frontend::FindFeaturesInRight() {
     for (size_t i = 0; i < status.size(); ++i) {
         if (status[i]) {
             cv::KeyPoint kp(kps_right[i], 7);
-            current_frame_->features_right_.push_back(
-                Feature::Ptr(new Feature(current_frame_, kp)));
+            Feature::Ptr feat(new Feature(current_frame_, kp));
+            feat->is_on_left_image_ = false;
+            current_frame_->features_right_.push_back(feat);
             num_good_pts++;
         } else {
             current_frame_->features_right_.push_back(nullptr);
@@ -361,6 +364,8 @@ bool Frontend::BuildInitMap() {
     }
     current_frame_->SetKeyFrame();
     map_->InsertKeyFrame(current_frame_);
+    backend_->UpdateMap();
+
     LOG(INFO) << "Initial map created with " << cnt_init_landmarks
               << " map points";
 

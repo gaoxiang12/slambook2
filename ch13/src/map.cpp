@@ -23,11 +23,15 @@ namespace myslam {
 
 void Map::InsertKeyFrame(Frame::Ptr frame) {
     if (keyframes_.find(frame->id_) == keyframes_.end()) {
-        keyframes_.insert(make_pair(frame->id_, frame));
-        active_keyframes_.insert(make_pair(frame->id_, frame));
+        keyframes_.insert(make_pair(frame->keyframe_id_, frame));
+        active_keyframes_.insert(make_pair(frame->keyframe_id_, frame));
     } else {
-        keyframes_[frame->id_] = frame;
-        active_keyframes_[frame->id_] = frame;
+        keyframes_[frame->keyframe_id_] = frame;
+        active_keyframes_[frame->keyframe_id_] = frame;
+    }
+
+    if (active_keyframes_.size() > num_active_keyframes_) {
+        RemoveOldKeyframe();
     }
 }
 
@@ -41,5 +45,11 @@ void Map::InsertMapPoint(MapPoint::Ptr map_point) {
     }
 }
 
-
+void Map::RemoveOldKeyframe() {
+    auto frame_to_remove_iter = active_keyframes_.begin();
+    // set landmarks as
 }
+
+void Map::CleanMap() {}
+
+}  // namespace myslam
