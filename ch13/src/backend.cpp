@@ -23,6 +23,7 @@ void Backend::UpdateMap() {
 
 void Backend::Stop() {
     backend_running_.store(false);
+    map_update_.notify_one();
     backend_thread_.join();
 }
 
@@ -30,10 +31,10 @@ void Backend::BackendLoop() {
     while (backend_running_.load()) {
         std::unique_lock<std::mutex> lock(data_mutex_);
         map_update_.wait(lock);
+
         /// 后端仅优化激活的Frames和Landmarks
         Map::KeyframesType active_kfs = map_->GetActiveKeyFrames();
         Map::LandmarksType active_landmarks = map_->GetActiveMapPoints();
-
         Optimize(active_kfs, active_landmarks);
     }
 }
@@ -50,7 +51,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm(solver);
 
-    // pose 顶点，id使用Keyframe id
+    // pose 顶点，使用Keyframe id
     std::map<unsigned long, VertexPose *> vertices;
     unsigned long max_kf_id = 0;
     for (auto &keyframe : keyframes) {
@@ -66,17 +67,17 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
         vertices.insert({kf->keyframe_id_, vertex_pose});
     }
 
-    // landmarks, will be created when adding new edges
+    // 路标顶点，使用路标id索引
     std::map<unsigned long, VertexXYZ *> vertices_landmarks;
 
-    // K
+    // K 和左右外参
     Mat33 K = cam_left_->K();
     SE3 left_ext = cam_left_->pose();
     SE3 right_ext = cam_right_->pose();
 
     // edges
     int index = 1;
-    double chi2_th = 5.991;
+    double chi2_th = 5.991; // robust kernel 阈值
     std::map<EdgeProjection *, Feature::Ptr> edges_and_features;
 
     for (auto &landmark : landmarks) {
@@ -96,6 +97,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
                 edge = new EdgeProjection(K, right_ext);
             }
 
+            // 如果landmark还没有被加入优化，则新加一个顶点
             if (vertices_landmarks.find(landmark_id) ==
                 vertices_landmarks.end()) {
                 VertexXYZ *v = new VertexXYZ;
@@ -168,8 +170,6 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
     for (auto &v : vertices_landmarks) {
         landmarks.at(v.first)->SetPos(v.second->estimate());
     }
-
-    map_->CleanMap();
 }
 
 }  // namespace myslam

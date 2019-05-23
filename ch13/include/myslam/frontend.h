@@ -15,6 +15,10 @@ class Viewer;
 
 enum class FrontendStatus { INITING, TRACKING_GOOD, TRACKING_BAD, LOST };
 
+/**
+ * 前端
+ * 估计当前帧Pose，在满足关键帧条件时向地图加入关键帧并触发优化
+ */
 class Frontend {
    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -24,6 +28,7 @@ class Frontend {
 
     bool AddFrame(Frame::Ptr frame);
 
+    // 
     void SetMap(Map::Ptr map) { map_ = map; }
 
     void SetBackend(std::shared_ptr<Backend> backend) { backend_ = backend; }
