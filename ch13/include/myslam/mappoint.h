@@ -39,6 +39,7 @@ struct MapPoint {
     void AddObservation(std::shared_ptr<Feature> feature) {
         std::unique_lock<std::mutex> lck(data_mutex_);
         observations_.push_back(feature);
+        observed_times_++;
     }
 
     std::list<std::weak_ptr<Feature>> GetObs() {

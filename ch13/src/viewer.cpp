@@ -59,7 +59,7 @@ void Viewer::ThreadLoop() {
         std::unique_lock<std::mutex> lock(viewer_data_mutex_);
         if (current_frame_) {
             DrawFrame(current_frame_, green);
-            // FollowCurrentFrame(vis_camera);
+            FollowCurrentFrame(vis_camera);
 
             cv::Mat img = PlotFrameImage();
             cv::imshow("image", img);

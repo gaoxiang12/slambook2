@@ -50,8 +50,8 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm(solver);
 
-    // vertex
-    std::map<unsigned long, VertexPose *> vertices; // pose 顶点，id使用Keyframe id
+    // pose 顶点，id使用Keyframe id
+    std::map<unsigned long, VertexPose *> vertices;
     unsigned long max_kf_id = 0;
     for (auto &keyframe : keyframes) {
         auto kf = keyframe.second;
@@ -63,8 +63,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
             max_kf_id = kf->keyframe_id_;
         }
 
-        vertices.insert(std::pair<unsigned long, VertexPose *>(kf->keyframe_id_,
-                                                               vertex_pose));
+        vertices.insert({kf->keyframe_id_, vertex_pose});
     }
 
     // landmarks, will be created when adding new edges
@@ -103,8 +102,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
                 v->setEstimate(landmark.second->Pos());
                 v->setId(landmark_id + max_kf_id + 1);
                 v->setMarginalized(true);
-                vertices_landmarks.insert(
-                    std::pair<unsigned long, VertexXYZ *>(landmark_id, v));
+                vertices_landmarks.insert({landmark_id, v});
                 optimizer.addVertex(v);
             }
 
@@ -116,8 +114,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
             auto rk = new g2o::RobustKernelHuber();
             rk->setDelta(chi2_th);
             edge->setRobustKernel(rk);
-            edges_and_features.insert(
-                std::pair<EdgeProjection *, Feature::Ptr>(edge, feat));
+            edges_and_features.insert({edge, feat});
 
             optimizer.addEdge(edge);
 
@@ -127,7 +124,6 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
 
     // do optimization and eliminate the outliers
     optimizer.initializeOptimization();
-    optimizer.setVerbose(true);
     optimizer.optimize(10);
 
     int cnt_outlier = 0, cnt_inlier = 0;

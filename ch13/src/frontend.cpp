@@ -42,6 +42,10 @@ bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
 }
 
 bool Frontend::Track() {
+    if (last_frame_) {
+        current_frame_->SetPose(relative_motion_ * last_frame_->Pose());
+    }
+
     int num_track_last = TrackLastFrame();
     tracking_inliers_ = EstimateCurrentPose();
 
@@ -57,6 +61,7 @@ bool Frontend::Track() {
     }
 
     InsertKeyframe();
+    relative_motion_ = current_frame_->Pose() * last_frame_->Pose().inverse();
 
     if (viewer_) viewer_->AddCurrentFrame(current_frame_);
     return true;
@@ -92,10 +97,7 @@ bool Frontend::InsertKeyframe() {
 void Frontend::SetObservationsForKeyFrame() {
     for (auto &feat : current_frame_->features_left_) {
         auto mp = feat->map_point_.lock();
-        if (mp) {
-            mp->observed_times_++;
-            mp->observations_.push_back(feat);
-        }
+        if (mp) mp->AddObservation(feat);
     }
 }
 
@@ -120,7 +122,6 @@ int Frontend::TriangulateNewPoints() {
                 auto new_map_point = MapPoint::CreateNewMappoint();
                 pworld = current_pose_Twc * pworld;
                 new_map_point->SetPos(pworld);
-                new_map_point->observed_times_ = 2;
                 new_map_point->AddObservation(
                     current_frame_->features_left_[i]);
                 new_map_point->AddObservation(
@@ -213,6 +214,9 @@ int Frontend::EstimateCurrentPose() {
               << features.size() - cnt_outlier;
     // Set pose and outlier
     current_frame_->SetPose(vertex_pose->estimate());
+
+    LOG(INFO) << "Current Pose = \n" << current_frame_->Pose().matrix();
+
     for (auto &feat : features) {
         if (feat->is_outlier_) {
             feat->map_point_.reset();
@@ -226,17 +230,29 @@ int Frontend::TrackLastFrame() {
     // use LK flow to estimate points in the right image
     std::vector<cv::Point2f> kps_last, kps_current;
     for (auto &kp : last_frame_->features_left_) {
-        kps_last.push_back(kp->position_.pt);
+        if (kp->map_point_.lock()) {
+            // use project point
+            auto mp = kp->map_point_.lock();
+            auto px =
+                camera_left_->world2pixel(mp->pos_, current_frame_->Pose());
+            kps_last.push_back(kp->position_.pt);
+            kps_current.push_back(cv::Point2f(px[0], px[1]));
+        } else {
+            kps_last.push_back(kp->position_.pt);
+            kps_current.push_back(kp->position_.pt);
+        }
     }
 
     std::vector<uchar> status;
     Mat error;
-    cv::calcOpticalFlowPyrLK(last_frame_->left_img_, current_frame_->left_img_,
-                             kps_last, kps_current, status, error);
+    cv::calcOpticalFlowPyrLK(
+        last_frame_->left_img_, current_frame_->left_img_, kps_last,
+        kps_current, status, error, cv::Size(21, 21), 3,
+        cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
+                         0.01),
+        cv::OPTFLOW_USE_INITIAL_FLOW);
 
     int num_good_pts = 0;
-    cv::Mat img_show;
-    cv::cvtColor(current_frame_->left_img_, img_show, CV_GRAY2BGR);
 
     for (size_t i = 0; i < status.size(); ++i) {
         if (status[i]) {
@@ -245,13 +261,8 @@ int Frontend::TrackLastFrame() {
             feature->map_point_ = last_frame_->features_left_[i]->map_point_;
             current_frame_->features_left_.push_back(feature);
             num_good_pts++;
-
-            cv::circle(img_show, kp.pt, 2, cv::Scalar(0, 250, 0), 2);
-            cv::line(img_show, kp.pt, kps_last[i], cv::Scalar(0, 250, 0), 2);
         }
     }
-    // cv::imshow("LK track", img_show);
-    // cv::waitKey();
 
     LOG(INFO) << "Find " << num_good_pts << " in the last image.";
     return num_good_pts;
@@ -283,9 +294,6 @@ int Frontend::DetectFeatures() {
                       feat->position_.pt + cv::Point2f(10, 10), 0, CV_FILLED);
     }
 
-    // cv::imshow("mask", mask);
-    // cv::waitKey();
-
     std::vector<cv::KeyPoint> keypoints;
     gftt_->detect(current_frame_->left_img_, keypoints);
     for (auto &kp : keypoints) {
@@ -315,9 +323,12 @@ int Frontend::FindFeaturesInRight() {
 
     std::vector<uchar> status;
     Mat error;
-    cv::calcOpticalFlowPyrLK(current_frame_->left_img_,
-                             current_frame_->right_img_, kps_left, kps_right,
-                             status, error);
+    cv::calcOpticalFlowPyrLK(
+        current_frame_->left_img_, current_frame_->right_img_, kps_left,
+        kps_right, status, error, cv::Size(21, 21), 3,
+        cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
+                         0.01),
+        cv::OPTFLOW_USE_INITIAL_FLOW);
 
     int num_good_pts = 0;
     for (size_t i = 0; i < status.size(); ++i) {
@@ -353,7 +364,6 @@ bool Frontend::BuildInitMap() {
         if (triangulation(poses, points, pworld) && pworld[2] > 0) {
             auto new_map_point = MapPoint::CreateNewMappoint();
             new_map_point->SetPos(pworld);
-            new_map_point->observed_times_ = 2;
             new_map_point->AddObservation(current_frame_->features_left_[i]);
             new_map_point->AddObservation(current_frame_->features_right_[i]);
             current_frame_->features_left_[i]->map_point_ = new_map_point;

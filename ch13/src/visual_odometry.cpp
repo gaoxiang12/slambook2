@@ -45,9 +45,11 @@ void VisualOdometry::Run() {
         if (Step() == false) {
             break;
         }
-
-        sleep(1);
+        usleep(10000);
     }
+
+    backend_->Stop();
+    viewer_->Close();
 
     LOG(INFO) << "VO exit";
 }
