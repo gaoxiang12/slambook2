@@ -382,6 +382,9 @@ bool Frontend::BuildInitMap() {
     return true;
 }
 
-bool Frontend::Reset() { return true; }
+bool Frontend::Reset() {
+    LOG(INFO) << "Reset is not implemented. ";
+    return true;
+}
 
 }  // namespace myslam

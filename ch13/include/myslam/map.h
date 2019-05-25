@@ -9,7 +9,7 @@
 namespace myslam {
 
 /**
- * @brief
+ * @brief 地图
  * 和地图的交互：前端调用InsertKeyframe和InsertMapPoint插入新帧和地图点，后端维护地图的结构，判定outlier/剔除等等
  */
 class Map {
@@ -21,24 +21,29 @@ class Map {
 
     Map() {}
 
+    /// 增加一个关键帧
     void InsertKeyFrame(Frame::Ptr frame);
-
+    /// 增加一个地图顶点
     void InsertMapPoint(MapPoint::Ptr map_point);
 
+    /// 获取所有地图点
     LandmarksType GetAllMapPoints() {
         std::unique_lock<std::mutex> lck(data_mutex_);
         return landmarks_;
     }
+    /// 获取所有关键帧
     KeyframesType GetAllKeyFrames() {
         std::unique_lock<std::mutex> lck(data_mutex_);
         return keyframes_;
     }
 
+    /// 获取激活地图点
     LandmarksType GetActiveMapPoints() {
         std::unique_lock<std::mutex> lck(data_mutex_);
         return active_landmarks_;
     }
 
+    /// 获取激活关键帧
     KeyframesType GetActiveKeyFrames() {
         std::unique_lock<std::mutex> lck(data_mutex_);
         return active_keyframes_;

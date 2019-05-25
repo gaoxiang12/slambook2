@@ -10,10 +10,14 @@
 
 namespace myslam {
 
+/**
+ * VO 对外接口
+ */
 class VisualOdometry {
    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     typedef std::shared_ptr<VisualOdometry> Ptr;
+
     /// constructor with config file
     VisualOdometry(std::string &config_path);
 
@@ -33,6 +37,7 @@ class VisualOdometry {
      */
     bool Step();
 
+    /// 获取前端状态
     FrontendStatus GetFrontendStatus() const { return frontend_->GetStatus(); }
 
    private:

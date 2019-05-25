@@ -21,6 +21,7 @@
 
 namespace myslam {
 /// vertex and edges used in g2o ba
+/// 位姿顶点
 class VertexPose : public g2o::BaseVertex<6, SE3> {
    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -40,6 +41,7 @@ class VertexPose : public g2o::BaseVertex<6, SE3> {
     virtual bool write(std::ostream &out) const override { return true; }
 };
 
+/// 路标顶点
 class VertexXYZ : public g2o::BaseVertex<3, Vec3> {
    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -56,6 +58,7 @@ class VertexXYZ : public g2o::BaseVertex<3, Vec3> {
     virtual bool write(std::ostream &out) const override { return true; }
 };
 
+/// 仅估计位姿的一元边
 class EdgeProjectionPoseOnly : public g2o::BaseUnaryEdge<2, Vec2, VertexPose> {
    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -97,6 +100,7 @@ class EdgeProjectionPoseOnly : public g2o::BaseUnaryEdge<2, Vec2, VertexPose> {
     Mat33 _K;
 };
 
+/// 带有地图和位姿的二元边
 class EdgeProjection
     : public g2o::BaseBinaryEdge<2, Vec2, VertexPose, VertexXYZ> {
    public:

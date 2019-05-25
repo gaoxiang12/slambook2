@@ -77,7 +77,7 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
 
     // edges
     int index = 1;
-    double chi2_th = 5.991; // robust kernel 阈值
+    double chi2_th = 5.991;  // robust kernel 阈值
     std::map<EdgeProjection *, Feature::Ptr> edges_and_features;
 
     for (auto &landmark : landmarks) {

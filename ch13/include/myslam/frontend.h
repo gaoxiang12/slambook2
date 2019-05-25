@@ -26,9 +26,10 @@ class Frontend {
 
     Frontend();
 
+    /// 外部接口，添加一个帧并计算其定位结果
     bool AddFrame(Frame::Ptr frame);
 
-    // 
+    /// Set函数
     void SetMap(Map::Ptr map) { map_ = map; }
 
     void SetBackend(std::shared_ptr<Backend> backend) { backend_ = backend; }
@@ -112,11 +113,10 @@ class Frontend {
     // data
     FrontendStatus status_ = FrontendStatus::INITING;
 
-    Frame::Ptr current_frame_ = nullptr;
-    Frame::Ptr last_frame_ = nullptr;
-    Frame::Ptr ref_frame_ = nullptr;
-    Camera::Ptr camera_left_ = nullptr;
-    Camera::Ptr camera_right_ = nullptr;
+    Frame::Ptr current_frame_ = nullptr;  // 当前帧
+    Frame::Ptr last_frame_ = nullptr;     // 上一帧
+    Camera::Ptr camera_left_ = nullptr;   // 左侧相机
+    Camera::Ptr camera_right_ = nullptr;  // 右侧相机
 
     Map::Ptr map_ = nullptr;
     std::shared_ptr<Backend> backend_ = nullptr;
