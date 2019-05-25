@@ -248,7 +248,7 @@ int Frontend::TrackLastFrame() {
     Mat error;
     cv::calcOpticalFlowPyrLK(
         last_frame_->left_img_, current_frame_->left_img_, kps_last,
-        kps_current, status, error, cv::Size(21, 21), 3,
+        kps_current, status, error, cv::Size(11, 11), 3,
         cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
                          0.01),
         cv::OPTFLOW_USE_INITIAL_FLOW);
@@ -329,7 +329,7 @@ int Frontend::FindFeaturesInRight() {
     Mat error;
     cv::calcOpticalFlowPyrLK(
         current_frame_->left_img_, current_frame_->right_img_, kps_left,
-        kps_right, status, error, cv::Size(21, 21), 3,
+        kps_right, status, error, cv::Size(11, 11), 3,
         cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30,
                          0.01),
         cv::OPTFLOW_USE_INITIAL_FLOW);

@@ -42,14 +42,9 @@ bool VisualOdometry::Init() {
 void VisualOdometry::Run() {
     while (1) {
         LOG(INFO) << "VO is running";
-        auto t1 = std::chrono::steady_clock::now();
         if (Step() == false) {
             break;
         }
-        auto t2 = std::chrono::steady_clock::now();
-        auto time_used =
-            std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        LOG(INFO) << "VO cost time: " << time_used.count() << " seconds.";
     }
 
     backend_->Stop();
@@ -62,7 +57,13 @@ bool VisualOdometry::Step() {
     Frame::Ptr new_frame = dataset_->NextFrame();
     if (new_frame == nullptr) return false;
 
-    return frontend_->AddFrame(new_frame);
+    auto t1 = std::chrono::steady_clock::now();
+    bool success = frontend_->AddFrame(new_frame);
+    auto t2 = std::chrono::steady_clock::now();
+    auto time_used =
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    LOG(INFO) << "VO cost time: " << time_used.count() << " seconds.";
+    return success;
 }
 
 }  // namespace myslam

@@ -11,5 +11,5 @@ camera.cx: 325.1
 camera.cy: 249.7
 
 num_features: 150
-num_features_init: 100
+num_features_init: 50
 num_features_tracking: 50
