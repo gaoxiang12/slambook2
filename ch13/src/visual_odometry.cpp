@@ -1,8 +1,8 @@
 //
 // Created by gaoxiang on 19-5-4.
 //
-
 #include "myslam/visual_odometry.h"
+#include <chrono>
 #include "myslam/config.h"
 
 namespace myslam {
@@ -42,10 +42,14 @@ bool VisualOdometry::Init() {
 void VisualOdometry::Run() {
     while (1) {
         LOG(INFO) << "VO is running";
+        auto t1 = std::chrono::steady_clock::now();
         if (Step() == false) {
             break;
         }
-        usleep(10000);
+        auto t2 = std::chrono::steady_clock::now();
+        auto time_used =
+            std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+        LOG(INFO) << "VO cost time: " << time_used.count() << " seconds.";
     }
 
     backend_->Stop();
