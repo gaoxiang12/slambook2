@@ -19,6 +19,7 @@ Frontend::Frontend() {
     gftt_ =
         cv::GFTTDetector::create(Config::Get<int>("num_features"), 0.01, 20);
     num_features_init_ = Config::Get<int>("num_features_init");
+    num_features_ = Config::Get<int>("num_features");
 }
 
 bool Frontend::AddFrame(myslam::Frame::Ptr frame) {
@@ -140,7 +141,7 @@ int Frontend::TriangulateNewPoints() {
 
 int Frontend::EstimateCurrentPose() {
     // setup g2o
-    typedef g2o::BlockSolverX BlockSolverType;
+    typedef g2o::BlockSolver_6_3 BlockSolverType;
     typedef g2o::LinearSolverDense<BlockSolverType::PoseMatrixType>
         LinearSolverType;
     auto solver = new g2o::OptimizationAlgorithmLevenberg(
@@ -295,13 +296,16 @@ int Frontend::DetectFeatures() {
     }
 
     std::vector<cv::KeyPoint> keypoints;
-    gftt_->detect(current_frame_->left_img_, keypoints);
+    gftt_->detect(current_frame_->left_img_, keypoints, mask);
+    int cnt_detected = 0;
     for (auto &kp : keypoints) {
         current_frame_->features_left_.push_back(
             Feature::Ptr(new Feature(current_frame_, kp)));
+        cnt_detected++;
     }
-    LOG(INFO) << "Detect " << keypoints.size() << " new features";
-    return keypoints.size();
+
+    LOG(INFO) << "Detect " << cnt_detected << " new features";
+    return cnt_detected;
 }
 
 int Frontend::FindFeaturesInRight() {
