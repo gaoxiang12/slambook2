@@ -13,6 +13,8 @@ Errata will be updated at this code base.
 
 Hope you like this book.
 
+BaiduYun backup link in case your github is very slow (common in China): [here](https://pan.baidu.com/s/1XQwpnDb3BOvxXZhL-03p3w)
+
 ---
 ## 视觉SLAM十四讲：从理论到实践 第二版
 欢迎来到视觉SLAM十四讲：从理论到实践。这里存放本书对应的代码文件。以下是一些可能对你有用的链接：
@@ -26,3 +28,5 @@ Hope you like this book.
 勘误表会更新到代码库中。
 
 希望您喜欢本书。
+
+本代码的百度云备份（如果您的github速度非常慢）[下载链接](https://pan.baidu.com/s/1XQwpnDb3BOvxXZhL-03p3w).
