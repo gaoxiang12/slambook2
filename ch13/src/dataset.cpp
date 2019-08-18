@@ -37,7 +37,7 @@ bool Dataset::Init() {
         t = K.inverse() * t;
         K = K * 0.5;
         Camera::Ptr new_camera(new Camera(K(0, 0), K(1, 1), K(0, 2), K(1, 2),
-                                          t.squaredNorm(), SE3(SO3(), t)));
+                                          t.norm(), SE3(SO3(), t)));
         cameras_.push_back(new_camera);
         LOG(INFO) << "Camera " << i << " extrinsics: " << t.transpose();
     }

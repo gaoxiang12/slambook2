@@ -24,7 +24,7 @@ namespace myslam {
 
 void Map::InsertKeyFrame(Frame::Ptr frame) {
     current_frame_ = frame;
-    if (keyframes_.find(frame->id_) == keyframes_.end()) {
+    if (keyframes_.find(frame->keyframe_id_) == keyframes_.end()) {
         keyframes_.insert(make_pair(frame->keyframe_id_, frame));
         active_keyframes_.insert(make_pair(frame->keyframe_id_, frame));
     } else {
