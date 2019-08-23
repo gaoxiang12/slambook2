@@ -1,0 +1,43 @@
+%!TEX program = xelatex
+\documentclass[lang=cn,11pt,numbers]{errata}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\title{视觉SLAM十四讲：从理论到实践（第二版） \\ 勘误表}
+\author{高翔}
+\date{\today}
+
+\begin{document}
+\maketitle
+\section{勘误表说明}
+由于能力所限，书籍内容难免有一些错误，我们对此表示抱歉。在这个文档里，我们列出自第一次印刷（2019年8月）后书中的错误。大多数错误应该会在下一次印刷中修复。所以，请读者留意扉页中的印刷次数，并对照本文档进行斟别。
+
+对于代码的改动，请参照当前的github页面，勘误表仅针对书籍内容。本勘误表仅对第二版书籍有效，第一版书的勘误请参考第一版书对应的github页面。
+
+由于排版可能在不同印刷次数中存在微小改动，勘误表中的页面和段落等标记，仅针对当前次印刷有效。
+
+如果您认为书中内容存在错误，请给我发邮件，或者通过出版社提供的反馈通道发送信息。直接给我发邮件会比较方便。
+\section{第一次印刷}
+\begin{table}[!htp]
+	\centering
+	\caption{第一次印刷勘误}
+	\begin{tabular}{c|cccc}
+		\hline\hline
+		序号 & 位置 & 改动前 & 改动后 & 说明 \\\hline
+		1 & 彩页1右上图标题 & 拓扑地 & 拓扑地图 & 美编加工时漏字 \\
+		2 & 式3.41 & $
+		\begin{aligned}
+		\theta &= \arccos(\frac{\mathrm{tr}(\bm{R}-1)}{2}) \\
+		&=\arccos(2s^2-1).
+		\end{aligned}$ & $
+		\begin{aligned}
+		\theta &= \arccos(\frac{\mathrm{tr}(\bm{R})-1}{2}) \\
+		&=\arccos(2s^2-1).
+		\end{aligned}$ & $\mathrm{tr}$括号位置有误 \\
+		3 & P188 终端输入 & d1.png d2.png & 1\_depth.png 2\_depth.png & 深度图文件名 \\
+		\hline\hline
+	\end{tabular}
+\end{table}
+
+\end{document}
