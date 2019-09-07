@@ -206,7 +206,7 @@ void bundleAdjustmentGaussNewton(
         fx * pc[1] * inv_z,
         0,
         -fy * inv_z,
-        fy * pc[1] * inv_z,
+        fy * pc[1] * inv_z2,
         fy + fy * pc[1] * pc[1] * inv_z2,
         -fy * pc[0] * pc[1] * inv_z2,
         -fy * pc[0] * inv_z;
@@ -233,7 +233,7 @@ void bundleAdjustmentGaussNewton(
     pose = Sophus::SE3d::exp(dx) * pose;
     lastCost = cost;
 
-    cout << "iteration " << iter << " cost=" << cout.precision(12) << cost << endl;
+    cout << "iteration " << iter << " cost=" << std::setprecision(12) << cost << endl;
     if (dx.norm() < 1e-6) {
       // converge
       break;
