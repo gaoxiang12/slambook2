@@ -4,4 +4,4 @@ project( geometry )
 # 添加Eigen头文件
 include_directories( "/usr/include/eigen3" )
 
-add_executable( eigenGeometry eigenGeometry.cpp ../examples/coordinateTransform.cpp)
+add_executable(eigenGeometry eigenGeometry.cpp)
