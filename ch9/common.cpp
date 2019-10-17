@@ -160,7 +160,7 @@ void BALProblem::WriteToPLYFile(const std::string &filename) const {
         const double *camera = cameras() + camera_block_size() * i;
         CameraToAngelAxisAndCenter(camera, angle_axis, center);
         of << center[0] << ' ' << center[1] << ' ' << center[2]
-           << "0 255 0" << '\n';
+           << " 0 255 0" << '\n';
     }
 
     // Export the structure (i.e. 3D Points) as white points.
@@ -170,7 +170,7 @@ void BALProblem::WriteToPLYFile(const std::string &filename) const {
         for (int j = 0; j < point_block_size(); ++j) {
             of << point[j] << ' ';
         }
-        of << "255 255 255\n";
+        of << " 255 255 255\n";
     }
     of.close();
 }
