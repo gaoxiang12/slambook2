@@ -18,7 +18,7 @@
 由于排版可能在不同印刷次数中存在微小改动，勘误表中的页面和段落等标记，仅针对当前次印刷有效。
 
 如果您认为书中内容存在错误，请给我发邮件，或者通过出版社提供的反馈通道发送信息。直接给我发邮件会比较方便。
-\section{第一次印刷}
+\section{第一次印刷（2019年8月）}
 \begin{table}[!htp]
 	\centering
 	\caption{第一次印刷勘误}
@@ -56,10 +56,10 @@
 \end{table}
 
 \section{一些不在勘误表内的改动}
-除上述改动之外，还有一些不在书籍文本内的改动，需要向读者说明。
+除上述改动之外，还有一些不在书籍文本内的改动，需要向读者说明。大部分这里的勘误来自于github issues.
 
 \begin{enumerate}
-	\item 第8讲的直接法实现，需要使用OpenCV 4支持的cv::parallel\_for\_函数。如果读者使用较旧的版本，需要对代码做一些改动。具体的改动方法请参照对应版本的OpenCV文档。
+	\item 第8讲的直接法实现，需要使用OpenCV 4支持的cv::parallel\_for\_函数。如果读者使用较旧的版本，需要对代码做一些改动。具体的改动方法请参照对应版本的OpenCV文档，或者参考~\url{https://github.com/gaoxiang12/slambook2/issues/32}。
 	\item 第4讲的examples/trajectorError例子中，构造SE3的部分四元数应该使用$w,x,y,z$顺序。
 \end{enumerate}
 
