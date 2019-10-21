@@ -140,7 +140,7 @@
 	\newcommand{\keywords}[1]{\vskip2ex\par\noindent\normalfont{\bfseries 关键词: } #1}
 	\newcommand\figref[1]{{\bfseries 图~\ref{#1}}}
 	\newcommand\tabref[1]{{\bfseries 表~\ref{#1}}}
-	\RequirePackage{gbt7714}
+%	\RequirePackage{gbt7714}
 }{\relax}
 \ifdefstring{\ELEGANT@lang}{en}{
   \theoremstyle{plain}% default

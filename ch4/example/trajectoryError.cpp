@@ -48,7 +48,7 @@ TrajectoryType ReadTrajectory(const string &path) {
   while (!fin.eof()) {
     double time, tx, ty, tz, qx, qy, qz, qw;
     fin >> time >> tx >> ty >> tz >> qx >> qy >> qz >> qw;
-    Sophus::SE3d p1(Eigen::Quaterniond(qx, qy, qz, qw), Eigen::Vector3d(tx, ty, tz));
+    Sophus::SE3d p1(Eigen::Quaterniond(qw, qx, qy, qz), Eigen::Vector3d(tx, ty, tz));
     trajectory.push_back(p1);
   }
   return trajectory;
