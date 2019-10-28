@@ -19,7 +19,6 @@ BaiduYun backup link in case your github is very slow (common in China): [here](
 ## 视觉SLAM十四讲：从理论到实践 第二版
 欢迎来到视觉SLAM十四讲：从理论到实践。这里存放本书对应的代码文件。以下是一些可能对你有用的链接：
 - [京东书籍链接](https://item.jd.com/12666058.html)
-- [豆瓣评价](https://book.douban.com/subject/27028215/) (我乐意看到一些真实的评价，这对改进书籍质量会有好处)
 - [第一版书代码](https://github.com/gaoxiang12/slambook)
 - [英文版代码](https://github.com/gaoxiang12/slambook-en) (正在翻译中)
 
