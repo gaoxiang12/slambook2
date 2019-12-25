@@ -387,7 +387,7 @@ bool updateDepthFilter(
     // f2 = R_RC * f_cur
     // 转化成下面这个矩阵方程组
     // => [ f_ref^T f_ref, -f_ref^T f2 ] [d_ref]   [f_ref^T t]
-    //    [ f_cur^T f_ref, -f2^T f2    ] [d_cur] = [f2^T t   ]
+    //    [ f_2^T f_ref, -f2^T f2      ] [d_cur] = [f2^T t   ]
     Vector3d t = T_R_C.translation();
     Vector3d f2 = T_R_C.so3() * f_curr;
     Vector2d b = Vector2d(t.dot(f_ref), t.dot(f2));
