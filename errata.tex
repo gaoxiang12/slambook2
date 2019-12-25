@@ -43,10 +43,10 @@
 	\end{tabular}
 \end{table}
 
-\section{第四次印刷（2019年10月）}
+\section{第三次印刷（2019年10月）}
 \begin{table}[!htp]
 	\centering
-	\caption{第四次印刷勘误}
+	\caption{第三次印刷勘误}
 	\begin{tabular}{c|cccc}
 		\hline\hline
 		序号 & 位置 & 改动前 & 改动后 & 说明 \\\hline
@@ -55,15 +55,17 @@
 	\end{tabular}
 \end{table}
 
-\section{第五次印刷（2019年11月）}
+\section{第四次印刷（2019年11月）}
 \begin{table}[!htp]
 	\centering
 	\caption{第四次印刷勘误}
 	\begin{tabular}{c|cccc}
 		\hline\hline
 		序号 & 位置 & 改动前 & 改动后 & 说明 \\\hline
-		7 & P265 第10讲主要目标 & 第3条 & 删去 & 正文内未介绍IMU(计划但没有实装) \\
+		8 & P169  & 式(7.25)下方文字说明 & $s_1,s_2$互相替换 & 7.25是关于$s_2$的方程 \\
 		\hline \hline
+        9 & P122  & 这里$\bm{J}(\bm{x})^\mathrm{T}$为$f(\bm{x})$关于$\bm{x}$的导数 & 这里$\bm{J}(\bm{x})$为$f(\bm{x})$关于$\bm{x}$的导数 & 去掉转置符号 \\
+        \hline \hline
 	\end{tabular}
 \end{table}
 
@@ -71,8 +73,9 @@
 除上述改动之外，还有一些不在书籍文本内的改动，需要向读者说明。大部分这里的勘误来自于github issues。它们在代码中已经被修复，但书里的文本会滞后于github的更新速度。
 
 \begin{enumerate}
-	\item 第4讲的examples/trajectorError例子中，构造SE3的部分四元数应该使用$w,x,y,z$顺序。
+	\item 第4讲的examples/trajectorError例子中，构造SE3的部分四元数应该使用$w,x,y,z$顺序；
 	\item 第7讲的orb\_self.cpp例子中，375行改为int idx\_pq = i * 32 + k;
+    \item 第7讲的orb\_self.cpp例子中，360和361行的m01和m10应该交换位置；
 	\item 第8讲的直接法实现，需要使用OpenCV 4支持的cv::parallel\_for\_函数。如果读者使用较旧的版本，需要对代码做一些改动。具体的改动方法请参照对应版本的OpenCV文档，或者参考~\url{https://github.com/gaoxiang12/slambook2/issues/32}。
 
 \end{enumerate}
