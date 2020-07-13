@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{bm}
+\usepackage{makecell}
 
 \title{视觉SLAM十四讲：从理论到实践（第二版） \\ 勘误表}
 \author{高翔}
@@ -62,10 +63,26 @@
 	\begin{tabular}{c|cccc}
 		\hline\hline
 		序号 & 位置 & 改动前 & 改动后 & 说明 \\\hline
-		8 & P178  & 式(7.25)下方文字说明的前两句 & 该式左侧为零，右侧可看成关于$s_1$的一个方程，可以根据它直接求得$s_1$。有了$s_1$，$s_2$也非常容易求出 & 修改至正确的表述 \\
-		\hline \hline
+		8 & P178  & 式(7.25)下方文字说明的前两句 & \makecell[c]{该式左侧为零，右侧可看成\\关于$s_1$的一个方程\\可以根据它直接求得$s_1$。\\有了$s_1$，$s_2$也非常容易求出} & 修改至正确的表述 \\
+		\hline 
         9 & P127  & 这里$\bm{J}(\bm{x})^\mathrm{T}$为$F(\bm{x})$关于$\bm{x}$的导数 & 这里$\bm{J}(\bm{x})$为$F(\bm{x})$关于$\bm{x}$的导数 & 去掉转置符号 \\
         \hline \hline
+	\end{tabular}
+\end{table}
+
+\section{未提交勘误}
+以下是未提交至出版社的已知问题的勘误。
+\begin{table}[!htp]
+	\centering
+	\caption{未提交勘误}
+	\begin{tabular}{c|cccc}
+		\hline\hline
+		序号 & 位置 & 改动前 & 改动后 & 说明 \\\hline
+		10 & P262  & 代码片段 & 删除 & 与前文重复，疑似版本问题 \\
+		\hline 
+		11 & P100  & （即该点到成像平面的深度） & 该点到相机光心的深度 & 用语更准确 \\ \hline
+		12 & P100  & 脚注部分：如果往里弯，...如果外往弯 & 交换顺序，如果往外弯在前 & 描述不当 \\ \hline
+		\hline \hline
 	\end{tabular}
 \end{table}
 
