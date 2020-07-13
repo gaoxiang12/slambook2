@@ -40,8 +40,6 @@ void DrawTrajectory(vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>> pos
   // create pangolin window and plot the trajectory
   pangolin::CreateWindowAndBind("Trajectory Viewer", 1024, 768);
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   pangolin::OpenGlRenderState s_cam(
     pangolin::ProjectionMatrix(1024, 768, 500, 500, 512, 389, 0.1, 1000),
@@ -52,12 +50,12 @@ void DrawTrajectory(vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>> pos
     .SetBounds(0.0, 1.0, 0.0, 1.0, -1024.0f / 768.0f)
     .SetHandler(new pangolin::Handler3D(s_cam));
 
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glLineWidth(2);
   while (pangolin::ShouldQuit() == false) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     d_cam.Activate(s_cam);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glLineWidth(2);
-    for (size_t i = 0; i < poses.size(); i++) {
+    for (size_t i = 0; i < poses.size(); ++i) {
       // 画每个位姿的三个坐标轴
       Vector3d Ow = poses[i].translation();
       Vector3d Xw = poses[i] * (0.1 * Vector3d(1, 0, 0));
@@ -76,7 +74,7 @@ void DrawTrajectory(vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>> pos
       glEnd();
     }
     // 画出连线
-    for (size_t i = 0; i < poses.size(); i++) {
+    for (size_t i = 0; i < poses.size() - 1; ++i) {
       glColor3f(0.0, 0.0, 0.0);
       glBegin(GL_LINES);
       auto p1 = poses[i], p2 = poses[i + 1];
