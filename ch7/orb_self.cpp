@@ -342,7 +342,7 @@ int ORB_pattern[256 * 4] = {
 // compute the descriptor
 void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints, vector<DescType> &descriptors) {
   const int half_patch_size = 8;
-  const int half_boundary = 16;
+  const int half_boundary = 19;
   int bad_points = 0;
   for (auto &kp: keypoints) {
     if (kp.pt.x < half_boundary || kp.pt.y < half_boundary ||
