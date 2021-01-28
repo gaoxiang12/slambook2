@@ -1,3 +1,0 @@
-//SLAM structure
-//front-end: VO
-![alt text] (https://github.com/gaoxiang12/slambook2/pull/141#issue-563363642)
