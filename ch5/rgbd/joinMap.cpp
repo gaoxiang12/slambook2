@@ -2,8 +2,8 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 #include <boost/format.hpp>  // for formating strings
-#include <sophus/se3.hpp>
 #include <pangolin/pangolin.h>
+#include <sophus/se3.hpp>
 
 using namespace std;
 typedef vector<Sophus::SE3d, Eigen::aligned_allocator<Sophus::SE3d>> TrajectoryType;
@@ -24,9 +24,9 @@ int main(int argc, char **argv) {
     }
 
     for (int i = 0; i < 5; i++) {
-        boost::format fmt("./%s/%d.%s"); //图像文件格式
-        colorImgs.push_back(cv::imread((fmt % "color" % (i + 1) % "png").str()));
-        depthImgs.push_back(cv::imread((fmt % "depth" % (i + 1) % "pgm").str(), -1)); // 使用-1读取原始图像
+        boost::format imgfmt("./%s/%d.%s"); //图像文件格式
+        colorImgs.push_back(cv::imread((imgfmt % "color" % (i + 1) % "png").str()));
+        depthImgs.push_back(cv::imread((imgfmt % "depth" % (i + 1) % "pgm").str(), -1)); // 使用-1读取原始图像
 
         double data[7] = {0};
         for (auto &d:data)
