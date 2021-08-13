@@ -232,11 +232,42 @@ void pose_estimation_3d3d(const vector<Point3f> &pts1,
   cout << "U=" << U << endl;
   cout << "V=" << V << endl;
 
-  Eigen::Matrix3d R_ = U * (V.transpose());
+  /*
+   * error：此处公式有误
+   * 正确的公式为：R = V * U^T
+   * 下面会有代码验证R的计算公式
+   */
+  // Eigen::Matrix3d R_ = U * (V.transpose());
+  Eigen::Matrix3d R_ = V * (U.transpose());
+
+  // 验证R的计算公式
+  Eigen::Matrix3d R1 = V * U.transpose();  // 我所认为的
+  Eigen::Matrix3d R2 = U * V.transpose();  // 原始代码使用的
+  if (R1.determinant() > 0) {
+      cout << "行列式的值为1，所求的R即为旋转矩阵" << endl;
+  }
+  // 从矩阵迹最大化的角度：
+  Eigen::Matrix3d ret1 = R1 * W;
+  Eigen::Matrix3d ret2 = R2 * W;
+  cout << "ret1.trace = " << ret1.trace() << "; " << "ret2.trace = " << ret2.trace() << endl;
+  // 从残差和的角度
+  double error_sum1 = 0.0, error_sum2 = 0.0;
+  for (int i = 0; i < pts1.size(); i++) {
+      Eigen::Vector3d residual_error1 = Eigen::Vector3d(q2[i].x, q2[i].y, q2[i].z) - R1 * Eigen::Vector3d(q1[i].x, q1[i].y, q1[i].z);
+      Eigen::Vector3d residual_error2 = Eigen::Vector3d(q2[i].x, q2[i].y, q2[i].z) - R2 * Eigen::Vector3d(q1[i].x, q1[i].y, q1[i].z);
+      error_sum1 += residual_error1.norm();
+      error_sum2 += residual_error2.norm();
+  }
+  cout << "R1对应的误差为：" << error_sum1 << "，R2对应的误差为：" << error_sum2 << endl;
+
   if (R_.determinant() < 0) {
     R_ = -R_;
   }
-  Eigen::Vector3d t_ = Eigen::Vector3d(p1.x, p1.y, p1.z) - R_ * Eigen::Vector3d(p2.x, p2.y, p2.z);
+  /*
+   * error：从W的计算方式可知：R，t分别为pts1→pts2的旋转和平移；因此平移的计算为：t = p2 - R * p1
+   */
+  //Eigen::Vector3d t_ = Eigen::Vector3d(p1.x, p1.y, p1.z) - R_ * Eigen::Vector3d(p2.x, p2.y, p2.z);
+  Eigen::Vector3d t_ = Eigen::Vector3d(p2.x, p2.y, p2.z) - R_ * Eigen::Vector3d(p1.x, p1.y, p1.z);
 
   // convert to cv::Mat
   R = (Mat_<double>(3, 3) <<
