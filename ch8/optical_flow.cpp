@@ -84,21 +84,23 @@ void OpticalFlowMultiLevel(
  * @param y
  * @return the interpolated value of this pixel
  */
+
 inline float GetPixelValue(const cv::Mat &img, float x, float y) {
     // boundary check
     if (x < 0) x = 0;
     if (y < 0) y = 0;
-    if (x >= img.cols) x = img.cols - 1;
-    if (y >= img.rows) y = img.rows - 1;
-    uchar *data = &img.data[int(y) * img.step + int(x)];
+    if (x >= img.cols - 1) x = img.cols - 2;
+    if (y >= img.rows - 1) y = img.rows - 2;
+    
     float xx = x - floor(x);
     float yy = y - floor(y);
-    return float(
-        (1 - xx) * (1 - yy) * data[0] +
-        xx * (1 - yy) * data[1] +
-        (1 - xx) * yy * data[img.step] +
-        xx * yy * data[img.step + 1]
-    );
+    int x_a1 = std::min(img.cols - 1, int(x) + 1);
+    int y_a1 = std::min(img.rows - 1, int(y) + 1);
+    
+    return (1 - xx) * (1 - yy) * img.at<uchar>(y, x)
+    + xx * (1 - yy) * img.at<uchar>(y, x_a1)
+    + (1 - xx) * yy * img.at<uchar>(y_a1, x)
+    + xx * yy * img.at<uchar>(y_a1, x_a1);
 }
 
 int main(int argc, char **argv) {
