@@ -203,7 +203,11 @@ void DirectPoseEstimationSingleLayer(
 
     // plot the projected pixels here
     cv::Mat img2_show;
+#if CV_VERSION_MAJOR < 4
     cv::cvtColor(img2, img2_show, CV_GRAY2BGR);
+#else
+    cv::cvtColor(img2, img2_show, cv::COLOR_GRAY2BGR);
+#endif
     VecVector2d projection = jaco_accu.projected_points();
     for (size_t i = 0; i < px_ref.size(); ++i) {
         auto p_ref = px_ref[i];
