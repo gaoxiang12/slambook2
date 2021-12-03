@@ -14,6 +14,10 @@ void DrawTrajectory(vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>>);
 
 int main(int argc, char **argv) {
 
+	if (argc > 1)
+		trajectory_file=argv[1];
+
+
   vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>> poses;
   ifstream fin(trajectory_file);
   if (!fin) {
