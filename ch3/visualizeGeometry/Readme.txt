@@ -12,6 +12,7 @@ cd build
 cmake ..
 make 
 sudo make install 
+ldconfig
 
 * compile this program:
 mkdir build
