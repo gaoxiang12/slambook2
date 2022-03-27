@@ -76,10 +76,10 @@ void DrawTrajectory(vector<Isometry3d, Eigen::aligned_allocator<Isometry3d>> pos
       glEnd();
     }
     // 画出连线
-    for (size_t i = 0; i < poses.size(); i++) {
+    for (size_t i = 1U; i < poses.size(); i++) {
       glColor3f(0.0, 0.0, 0.0);
       glBegin(GL_LINES);
-      auto p1 = poses[i], p2 = poses[i + 1];
+      auto p1 = poses[i - 1U], p2 = poses[i];
       glVertex3d(p1.translation()[0], p1.translation()[1], p1.translation()[2]);
       glVertex3d(p2.translation()[0], p2.translation()[1], p2.translation()[2]);
       glEnd();
