@@ -12,7 +12,10 @@
 #include <cmath>
 #include <chrono>
 
+// 增加可视化功能，使用matplotlib
+#include <matplotlibcpp.h>
 using namespace std;
+using namespace matplotlibcpp;
 
 // 曲线模型的顶点，模板参数：优化变量维度和数据类型
 class CurveFittingVertex : public g2o::BaseVertex<3, Eigen::Vector3d> {
@@ -121,6 +124,17 @@ int main(int argc, char **argv) {
   // 输出优化值
   Eigen::Vector3d abc_estimate = v->estimate();
   cout << "estimated model: " << abc_estimate.transpose() << endl;
+
+  //可视化输出
+  vector<double> vx, vy;
+  for(int i = 0; i < N; i ++){
+    double x = i / 100.0;
+    vx.push_back(x);
+    vy.push_back(std::exp(ae * x * x + be * x + ce));
+  }
+  scatter(x_data, y_data, 5);
+  plot(vx, vy);
+  show();
 
   return 0;
 }

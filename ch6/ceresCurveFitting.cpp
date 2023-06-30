@@ -7,7 +7,9 @@
 #include <ceres/ceres.h>
 #include <chrono>
 
+#include <matplotlibcpp.h>
 using namespace std;
+using namespace matplotlibcpp;
 
 // 代价函数的计算模型
 struct CURVE_FITTING_COST {
@@ -72,6 +74,17 @@ int main(int argc, char **argv) {
   cout << "estimated a,b,c = ";
   for (auto a:abc) cout << a << " ";
   cout << endl;
+
+  //可视化输出
+  vector<double> vx, vy;
+  for(int i = 0; i < N; i ++){
+    double x = i / 100.0;
+    vx.push_back(x);
+    vy.push_back(std::exp(ae * x * x + be * x + ce));
+  }
+  scatter(x_data, y_data, 5);
+  plot(vx, vy);
+  show();
 
   return 0;
 }

@@ -4,9 +4,10 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <matplotlibcpp.h>
 using namespace std;
 using namespace Eigen;
-
+using namespace matplotlibcpp;
 int main(int argc, char **argv) {
   double ar = 1.0, br = 2.0, cr = 1.0;         // 真实参数值
   double ae = 2.0, be = -1.0, ce = 5.0;        // 估计参数值
@@ -74,5 +75,15 @@ int main(int argc, char **argv) {
   cout << "solve time cost = " << time_used.count() << " seconds. " << endl;
 
   cout << "estimated abc = " << ae << ", " << be << ", " << ce << endl;
+    //可视化输出
+  vector<double> vx, vy;
+  for(int i = 0; i < N; i ++){
+    double x = i / 100.0;
+    vx.push_back(x);
+    vy.push_back(std::exp(ae * x * x + be * x + ce));
+  }
+  scatter(x_data, y_data, 5);
+  plot(vx, vy);
+  show();
   return 0;
 }
