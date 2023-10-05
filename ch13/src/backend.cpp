@@ -108,6 +108,11 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
                 optimizer.addVertex(v);
             }
 
+
+            if (vertices.find(frame->keyframe_id_) !=
+                vertices.end() && 
+                vertices_landmarks.find(landmark_id) !=
+                vertices_landmarks.end()) {
             edge->setId(index);
             edge->setVertex(0, vertices.at(frame->keyframe_id_));    // pose
             edge->setVertex(1, vertices_landmarks.at(landmark_id));  // landmark
@@ -117,10 +122,10 @@ void Backend::Optimize(Map::KeyframesType &keyframes,
             rk->setDelta(chi2_th);
             edge->setRobustKernel(rk);
             edges_and_features.insert({edge, feat});
-
             optimizer.addEdge(edge);
-
             index++;
+                }
+                
         }
     }
 
