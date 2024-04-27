@@ -44,7 +44,8 @@ int main(int argc, char **argv) {
   // 用()访问矩阵中的元素
   cout << "print matrix 2x3: " << endl;
   for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 3; j++) cout << matrix_23(i, j) << "\t";
+    for (int j = 0; j < 3; j++) 
+      cout << matrix_23(i, j) << "\t";
     cout << endl;
   }
 
@@ -71,16 +72,16 @@ int main(int argc, char **argv) {
   cout << "random matrix: \n" << matrix_33 << endl;
   cout << "transpose: \n" << matrix_33.transpose() << endl;      // 转置
   cout << "sum: " << matrix_33.sum() << endl;            // 各元素和
-  cout << "trace: " << matrix_33.trace() << endl;          // 迹
+  cout << "trace: " << matrix_33.trace() << endl;          // 迹：矩阵的迹表示矩阵的主对角线元素之和，也等于所有特征值之和。
   cout << "times 10: \n" << 10 * matrix_33 << endl;               // 数乘
-  cout << "inverse: \n" << matrix_33.inverse() << endl;        // 逆
-  cout << "det: " << matrix_33.determinant() << endl;    // 行列式
+  cout << "inverse: \n" << matrix_33.inverse() << endl;        // 逆：矩阵的逆表示矩阵的倒数，可用于实现矩阵的除法等。
+  cout << "det: " << matrix_33.determinant() << endl;    // 行列式：矩阵的行列式表示矩阵的模。
 
   // 特征值
   // 实对称矩阵可以保证对角化成功
-  SelfAdjointEigenSolver<Matrix3d> eigen_solver(matrix_33.transpose() * matrix_33);
-  cout << "Eigen values = \n" << eigen_solver.eigenvalues() << endl;
-  cout << "Eigen vectors = \n" << eigen_solver.eigenvectors() << endl;
+  SelfAdjointEigenSolver<Matrix3d> eigen_solver(matrix_33.transpose() * matrix_33);  // 实对称矩阵
+  cout << "Eigen values = \n" << eigen_solver.eigenvalues() << endl;       // 特征值
+  cout << "Eigen vectors = \n" << eigen_solver.eigenvectors() << endl;     // 特征向量
 
   // 解方程
   // 我们求解 matrix_NN * x = v_Nd 这个方程
