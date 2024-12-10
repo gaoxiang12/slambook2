@@ -162,32 +162,32 @@ helloSLAM/fast:
 	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/build
 .PHONY : helloSLAM/fast
 
-helloSLAM.o: helloSLAM.cpp.o
+helloSLAM2.o: helloSLAM2.cpp.o
 
-.PHONY : helloSLAM.o
+.PHONY : helloSLAM2.o
 
 # target to build an object file
-helloSLAM.cpp.o:
-	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM.cpp.o
-.PHONY : helloSLAM.cpp.o
+helloSLAM2.cpp.o:
+	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM2.cpp.o
+.PHONY : helloSLAM2.cpp.o
 
-helloSLAM.i: helloSLAM.cpp.i
+helloSLAM2.i: helloSLAM2.cpp.i
 
-.PHONY : helloSLAM.i
+.PHONY : helloSLAM2.i
 
 # target to preprocess a source file
-helloSLAM.cpp.i:
-	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM.cpp.i
-.PHONY : helloSLAM.cpp.i
+helloSLAM2.cpp.i:
+	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM2.cpp.i
+.PHONY : helloSLAM2.cpp.i
 
-helloSLAM.s: helloSLAM.cpp.s
+helloSLAM2.s: helloSLAM2.cpp.s
 
-.PHONY : helloSLAM.s
+.PHONY : helloSLAM2.s
 
 # target to generate assembly for a file
-helloSLAM.cpp.s:
-	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM.cpp.s
-.PHONY : helloSLAM.cpp.s
+helloSLAM2.cpp.s:
+	$(MAKE) -f CMakeFiles/helloSLAM.dir/build.make CMakeFiles/helloSLAM.dir/helloSLAM2.cpp.s
+.PHONY : helloSLAM2.cpp.s
 
 libHelloSLAM.o: libHelloSLAM.cpp.o
 
@@ -258,9 +258,9 @@ help:
 	@echo "... hello_shared"
 	@echo "... hello"
 	@echo "... helloSLAM"
-	@echo "... helloSLAM.o"
-	@echo "... helloSLAM.i"
-	@echo "... helloSLAM.s"
+	@echo "... helloSLAM2.o"
+	@echo "... helloSLAM2.i"
+	@echo "... helloSLAM2.s"
 	@echo "... libHelloSLAM.o"
 	@echo "... libHelloSLAM.i"
 	@echo "... libHelloSLAM.s"

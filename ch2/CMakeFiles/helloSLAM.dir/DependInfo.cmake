@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/ranxiliu/Desktop/GitHub/slambook2/ch2/helloSLAM.cpp" "/home/ranxiliu/Desktop/GitHub/slambook2/ch2/CMakeFiles/helloSLAM.dir/helloSLAM.cpp.o"
+  "/home/ranxiliu/Desktop/GitHub/slambook2/ch2/helloSLAM2.cpp" "/home/ranxiliu/Desktop/GitHub/slambook2/ch2/CMakeFiles/helloSLAM.dir/helloSLAM2.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

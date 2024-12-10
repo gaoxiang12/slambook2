@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/helloSLAM.dir/helloSLAM.cpp.o"
+  "CMakeFiles/helloSLAM.dir/helloSLAM2.cpp.o"
   "helloSLAM"
   "helloSLAM.pdb"
 )
