@@ -1,7 +1,7 @@
 //
 // Created by xiang on 18-11-19.
 //
-
+#include <cmath>
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <ceres/ceres.h>
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < N; i++) {
     double x = i / 100.0;
     x_data.push_back(x);
-    y_data.push_back(exp(ar * x * x + br * x + cr) + rng.gaussian(w_sigma * w_sigma));
+    y_data.push_back(std::exp(ar * x * x + br * x + cr) + rng.gaussian(w_sigma * w_sigma));
   }
 
   double abc[3] = {ae, be, ce};
